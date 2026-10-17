@@ -1,6 +1,6 @@
 package com.example.recipient;
 
-import com.example.recipient.service.RecipientSearchIndex;
+import com.example.recipient.searchRecipient.service.RecipientSearchIndex;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.DefaultResourceLoader;
 

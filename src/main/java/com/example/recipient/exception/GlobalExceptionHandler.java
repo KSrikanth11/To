@@ -1,25 +1,27 @@
 package com.example.recipient.exception;
 
+import java.sql.SQLException;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.dao.DataAccessException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import jakarta.validation.ConstraintViolationException;
-import com.example.recipient.service.SonioxException;
-import com.example.recipient.service.SonioxTimeoutException;
-import com.example.recipient.service.TranscriptRejectedException;
-import com.example.recipient.service.AudioFileRejectedException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
-import org.springframework.web.client.RestClientResponseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.sql.SQLException;
+import com.example.recipient.AudioService.AudioFileRejectedException;
+import com.example.recipient.AudioService.SonioxException;
+import com.example.recipient.AudioService.SonioxTimeoutException;
+import com.example.recipient.AudioService.TranscriptRejectedException;
+
+import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
