@@ -1,0 +1,52 @@
+{
+  "info": {
+    "name": "Recipient Resolver API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "apiToken", "value": "replace-me" }
+  ],
+  "item": [
+    {
+      "name": "Resolve recipients",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{apiToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"query\": \"Send to Nalgonda all SIs\",\n  \"limit\": 50,\n  \"offset\": 0\n}" },
+        "url": "{{baseUrl}}/api/v1/recipients/resolve"
+      }
+    },
+    {
+      "name": "Resolve recipients from audio file",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{apiToken}}" }
+        ],
+        "body": { "mode": "formdata", "formdata": [
+          { "key": "audio", "type": "file", "src": "" },
+          { "key": "language_hints", "value": "en", "type": "text" },
+          { "key": "limit", "value": "50", "type": "text" },
+          { "key": "offset", "value": "0", "type": "text" }
+        ] },
+        "url": "{{baseUrl}}/api/v1/recipients/resolve-audio"
+      }
+    },
+    {
+      "name": "Health",
+      "request": { "method": "GET", "url": "{{baseUrl}}/actuator/health" }
+    },
+    {
+      "name": "Reload recipient index",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{apiToken}}" }],
+        "url": "{{baseUrl}}/api/v1/recipients/index/reload"
+      }
+    }
+  ]
+}

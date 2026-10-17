@@ -1,0 +1,36 @@
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+  tomcat:
+    connection-timeout: 5s
+spring:
+  application:
+    name: recipient-resolver
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+resolver:
+  index-path: ${RECIPIENT_INDEX_PATH:classpath:suraksha_recipient_search_index.json}
+  min-score: ${RESOLVER_MIN_SCORE:0.80}
+  max-results: ${RESOLVER_MAX_RESULTS:200}
+  custom-aliases: ${RESOLVER_CUSTOM_ALIASES:}
+llm:
+  provider: ${LLM_PROVIDER:openai}
+  model: ${LLM_MODEL:gpt-4.1-mini}
+  api-key: ${OPENAI_API_KEY:}
+soniox:
+  api-key: ${SONIOX_API_KEY:}
+  model: ${SONIOX_STT_MODEL:stt-async-v5}
+  max-wait-seconds: ${SONIOX_MAX_WAIT_SECONDS:90}
+  max-file-size-bytes: ${SONIOX_MAX_FILE_SIZE_BYTES:25000000}
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] [requestId=%X{requestId:-}] %logger{36} - %msg%n"
+  level:
+    root: INFO
+    com.example.recipient: INFO

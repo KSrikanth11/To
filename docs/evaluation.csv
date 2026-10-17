@@ -1,0 +1,4 @@
+query,scope,expected_member_ids,expected_subgroup_ids,reviewer,notes
+Send to Nalgonda all SIs,ALL,,,,Populate IDs from manually verified target database
+Nalgonda Circle Inspectors,ALL,,,,Populate IDs from manually verified target database
+DSPs in Nalgonda,ALL,,,,Populate IDs from manually verified target database
