@@ -13,8 +13,10 @@ import org.springframework.web.client.RestClient;
 import com.example.recipient.searchRecipient.model.Intent;
 import com.example.recipient.voice.command.model.CommandIntent;
 import com.example.recipient.voice.command.model.ComposeFormState;
+import com.example.recipient.voice.command.model.VoiceCommandContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Service
 public class IntentExtractor {
@@ -35,35 +37,54 @@ public class IntentExtractor {
     }
 
     public CommandIntent extract(String transcript, ComposeFormState form) {
+        return extractCommands(transcript, form).stream().findFirst()
+                .orElse(new CommandIntent(CommandIntent.IntentType.UNKNOWN, List.of(), Intent.RecipientType.AUTO,
+                        "UNSPECIFIED", null, List.of(), null, 0.0));
+    }
+
+    public List<CommandIntent> extractCommands(String transcript, ComposeFormState form) {
+        return extractCommands(transcript, form, VoiceCommandContext.empty());
+    }
+
+    public List<CommandIntent> extractCommands(String transcript, ComposeFormState form,
+                                              VoiceCommandContext context) {
         try {
-            JsonNode input = mapper.createObjectNode()
-                    .put("transcript", transcript)
-                    .set("form", mapper.valueToTree(form == null ? ComposeFormState.empty() : form));
-            JsonNode request = mapper.createObjectNode().put("model", model)
-                    .set("input", mapper.createArrayNode()
-                            .add(mapper.createObjectNode().put("role", "system").put("content", SYSTEM_PROMPT))
-                            .add(mapper.createObjectNode().put("role", "user").put("content", mapper.writeValueAsString(input))));
-            ((com.fasterxml.jackson.databind.node.ObjectNode) request).put("store", false);
-            ((com.fasterxml.jackson.databind.node.ObjectNode) request).set("text", mapper.readTree(OUTPUT_SCHEMA));
+            ObjectNode input = mapper.createObjectNode();
+            input.put("transcript", transcript);
+            input.set("form", mapper.valueToTree(form == null ? ComposeFormState.empty() : form));
+            input.set("context", mapper.valueToTree(context == null ? VoiceCommandContext.empty() : context));
+
+            ObjectNode request = mapper.createObjectNode();
+            request.put("model", model);
+            request.set("input", mapper.createArrayNode()
+                    .add(mapper.createObjectNode().put("role", "system").put("content", SYSTEM_PROMPT))
+                    .add(mapper.createObjectNode().put("role", "user").put("content", mapper.writeValueAsString(input))));
+            request.put("store", false);
+            request.set("text", mapper.readTree(OUTPUT_SCHEMA));
 
             JsonNode response = client.post().uri("/responses").contentType(MediaType.APPLICATION_JSON)
                     .body(request).retrieve().body(JsonNode.class);
             String output = response.path("output").findValuesAsText("text").stream().findFirst().orElseThrow();
             JsonNode node = mapper.readTree(output);
 
-            List<String> searchTerms = new java.util.ArrayList<>();
-            node.path("search_terms").forEach(term -> searchTerms.add(term.asText()));
-            Intent.RecipientType recipientType = recipientType(node.path("recipient_type").asText());
-            CommandIntent.IntentType intentType = intentType(node.path("intent").asText());
-            String text = node.path("text").isNull() ? null : node.path("text").asText();
-            String field = node.path("field").isNull() ? null : node.path("field").asText();
-            List<String> labels = new java.util.ArrayList<>();
-            node.path("labels").forEach(label -> labels.add(label.asText()));
-            return new CommandIntent(intentType, searchTerms, recipientType, node.path("scope").asText(),
-                    text, labels, field, node.path("confidence").asDouble());
+            List<CommandIntent> commands = new java.util.ArrayList<>();
+            node.path("commands").forEach(command -> commands.add(parseCommand(command)));
+            return List.copyOf(commands);
         } catch (Exception ex) {
             throw new IllegalStateException("Could not extract voice command intent", ex);
         }
+    }
+
+    private static CommandIntent parseCommand(JsonNode node) {
+        List<String> searchTerms = new java.util.ArrayList<>();
+        node.path("search_terms").forEach(term -> searchTerms.add(term.asText()));
+        List<String> labels = new java.util.ArrayList<>();
+        node.path("labels").forEach(label -> labels.add(label.asText()));
+        return new CommandIntent(intentType(node.path("intent").asText()), searchTerms,
+                recipientType(node.path("recipient_type").asText()), node.path("scope").asText(),
+                node.path("text").isNull() ? null : node.path("text").asText(), labels,
+                node.path("field").isNull() ? null : node.path("field").asText(),
+                node.path("confidence").asDouble());
     }
 
     private static Intent.RecipientType recipientType(String value) {
@@ -77,11 +98,13 @@ public class IntentExtractor {
     }
 
     private static final String SYSTEM_PROMPT = """
-            You are a voice-command interpreter for a messaging application. The user speaks or types one command at a time. Your job is to decide what the user wants to do, and extract only the data needed for that action. You do not perform actions, answer questions, or write content yourself.
+            You are a voice-command interpreter for a messaging application. A single transcript may contain several independent compose commands. Extract every clearly requested action in the order it was spoken. Do not perform actions, answer questions, or write content yourself.
 
-            The input contains the user's transcript and, optionally, the current compose form state (subject, message, labels, recipient count). Use the form state only to resolve relative commands such as "add", "change", "clear" or "it". Never copy form state into your output.
+            The input contains the current transcript, a bounded history of earlier user queries from this compose session, and the current compose form state (subject, message, labels, recipient count). Use history only to interpret the current query's references and edits. Extract actions only from the current transcript: never repeat or execute an action merely because it appeared in history. The current form state is authoritative for current field values.
 
-            STEP 1: Choose exactly one intent.
+            For follow-up edits, preserve relevant context that the user did not change. For example, if history searched for "all SIs in Nalgonda" and the current transcript says "change recipients from SI to CI", search for all CIs in Nalgonda: replace SI with CI, do not keep SI. If the user says "add CI too", preserve SI and add CI. Apply the same replace-versus-append distinction to subjects, message text, and labels using the current form state.
+
+            STEP 1: Extract all distinct intents in the transcript as an ordered commands array. A command may contain multiple intents such as selecting recipients, setting a subject, setting a message, and adding labels. Do not emit duplicate intents for the same requested change. Use UNKNOWN only when no actionable intent is present.
             - SEARCH_RECIPIENTS: the user wants to find or select people or groups.
             - SET_MESSAGE: the user wants to write or replace the message body.
             - APPEND_MESSAGE: the user wants to add more text to an existing message.
@@ -102,7 +125,7 @@ public class IntentExtractor {
             - "send it", "send now", "go ahead and send" -> SEND
             - Anything naming people, roles, places, or groups to select -> SEARCH_RECIPIENTS
 
-            STEP 2: Fill only the fields that belong to the chosen intent. Set every other field to null, [] or its neutral value.
+            STEP 2: For each command, fill only fields belonging to that intent. Set every other field to null, [] or its neutral value.
 
             SEARCH_RECIPIENTS rules:
             - Put the searchable words in search_terms: names, titles, roles, locations, departments, organizations, groups, categories, identifiers, codes.
@@ -129,9 +152,9 @@ public class IntentExtractor {
             SEND rules:
             - No other fields are needed. Never assume confirmation.
 
-            STEP 3: Set confidence from 0.0 to 1.0. Use below 0.6 when the intent is ambiguous, the transcript looks garbled, or the command could mean two things.
+            STEP 3: Set a separate confidence from 0.0 to 1.0 for each command. Use below 0.6 when that action is ambiguous or the relevant words are garbled.
 
-            Return only the required JSON. Do not explain your reasoning.
+            Return only the required JSON. Do not explain your reasoning. Preserve the order of requested changes. A phrase such as "send a message to all SIs in Nalgonda with subject X and label Y" can yield SEARCH_RECIPIENTS, SET_SUBJECT, ADD_LABEL, and SEND. Do not invent a message body when none was dictated. SEND means the user requested sending, but the application must still ask for confirmation and must not send automatically.
 
             Examples:
             "Select all CI's in Nalgonda" -> intent SEARCH_RECIPIENTS, search_terms ["CI's","Nalgonda"], recipient_type MEMBERS, scope ALL
@@ -150,6 +173,6 @@ public class IntentExtractor {
             """;
 
     private static final String OUTPUT_SCHEMA = """
-            {"format":{"type":"json_schema","name":"voice_command_intent","strict":true,"schema":{"type":"object","additionalProperties":false,"properties":{"intent":{"type":"string","enum":["SEARCH_RECIPIENTS","SET_MESSAGE","APPEND_MESSAGE","SET_SUBJECT","ADD_LABEL","REMOVE_LABEL","CLEAR_FIELD","SEND","UNKNOWN"]},"search_terms":{"type":"array","items":{"type":"string"}},"recipient_type":{"type":"string","enum":["MEMBERS","GROUPS","BOTH","AUTO"]},"scope":{"type":"string","enum":["ALL","SOME","UNSPECIFIED"]},"text":{"type":["string","null"]},"labels":{"type":"array","items":{"type":"string"}},"field":{"type":["string","null"],"enum":["SUBJECT","MESSAGE","LABELS","RECIPIENTS",null]},"confidence":{"type":"number"}},"required":["intent","search_terms","recipient_type","scope","text","labels","field","confidence"]}}}
+            {"format":{"type":"json_schema","name":"voice_command_plan","strict":true,"schema":{"type":"object","additionalProperties":false,"properties":{"commands":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"intent":{"type":"string","enum":["SEARCH_RECIPIENTS","SET_MESSAGE","APPEND_MESSAGE","SET_SUBJECT","ADD_LABEL","REMOVE_LABEL","CLEAR_FIELD","SEND","UNKNOWN"]},"search_terms":{"type":"array","items":{"type":"string"}},"recipient_type":{"type":"string","enum":["MEMBERS","GROUPS","BOTH","AUTO"]},"scope":{"type":"string","enum":["ALL","SOME","UNSPECIFIED"]},"text":{"type":["string","null"]},"labels":{"type":"array","items":{"type":"string"}},"field":{"type":["string","null"],"enum":["SUBJECT","MESSAGE","LABELS","RECIPIENTS",null]},"confidence":{"type":"number"}},"required":["intent","search_terms","recipient_type","scope","text","labels","field","confidence"]}}},"required":["commands"]}}}
             """;
 }

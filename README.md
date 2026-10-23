@@ -50,6 +50,40 @@ curl -X POST http://localhost:8080/api/v1/recipients/resolve-audio \
 
 The app validates the upload and asks Soniox to detect the spoken language automatically, then requests one-way translation into English (`en`). `language_hints` remains accepted for request compatibility but is not sent to Soniox on this endpoint: it describes the source speech and can bias recognition, while translation configuration controls the output language. The app uses Soniox's English translation tokens and does not pass non-English source tokens to the recipient resolver. The response includes the English transcript and recipient resolution. Soniox's `en` target is general English rather than a separate Indian-English locale. Transcripts must contain 1–500 characters; upload size defaults to 25 MB.
 
+## Voice command architecture
+
+`POST /api/voice/command` accepts either an already available transcript as JSON or an audio upload as multipart form data. Both request forms can include the current compose form and a `context` object containing recent user queries from this compose session. Send the `context` returned by each response with the next request. The API keeps the most recent eight non-empty queries (up to 500 characters each). Clear it when the compose component closes or the message is sent.
+
+Text request:
+
+```sh
+curl -X POST http://localhost:8080/api/voice/command \
+  -H 'Content-Type: application/json' \
+  -d '{"transcript":"write a message Hello team","form":{"subject":"","message":"","labels":[],"recipientCount":0},"context":{"userQueries":[]}}'
+```
+
+Audio request (the `form` part is JSON):
+
+```sh
+curl -X POST http://localhost:8080/api/voice/command \
+  -F 'audio=@./command.mp3;type=audio/mpeg' \
+  -F 'form={"subject":"","message":"","labels":[],"recipientCount":0};type=application/json' \
+  -F 'context={"userQueries":["Select all SIs in Nalgonda"]};type=application/json' \
+  -F 'language_hints=te'
+```
+
+The request flows through these layers:
+
+1. `VoiceCommandController` accepts JSON transcript input or multipart audio. Audio is transcribed and translated to English by `SonioxTranscriptionService`; either path then uses the same transcript routing method.
+2. `IntentExtractor` receives the current transcript, compose form, and recent user queries. It uses prior queries only to interpret the current turn and returns an ordered list of current intents, each with its own confidence; prior actions are not replayed. This supports follow-ups such as changing the designation in an earlier recipient query while retaining its location, as well as references to earlier subject, message, or label instructions.
+3. `CommandRouter` applies supported updates in order and returns the resulting `form`. Recipient searches run through `AliasService` and `RecipientResolverService`; their full `ResolveRecipientResponse` is returned as `recipientResolution` alongside the UI actions.
+4. Angular applies the actions and uses the returned form as the new compose state. Recipient matches are candidate results; only a fully resolved explicit “all” request updates `recipientCount` directly. Otherwise Angular should update that count when the user selects recipients.
+5. Spoken label names are returned in `UPDATE_LABELS` actions. Since this API's `form.labels` contains numeric IDs and the backend has no label catalog, Angular must map those names to IDs before updating that field. `SEND` returns `REQUEST_SEND_CONFIRMATION`; this endpoint never sends a message.
+
+For example, a transcript such as “send a message to all SIs in Nalgonda with subject Monthly review and label urgent” can return recipient results, a subject update, a label action, and a send confirmation request in one response. The message body remains unchanged because none was dictated.
+
+Implementation map: `voice/command/VoiceCommandController.java` (HTTP and audio/text convergence), `AudioService/SonioxTranscriptionService.java` (audio-to-English transcript), `voice/command/model/ComposeFormState.java`, `VoiceCommandContext.java`, and `VoiceCommandRequest.java` (request state and bounded query history), `voice/command/CommandRouter.java` (dispatch and history update), `voice/command/IntentExtractor.java` (context-aware intent extraction), and `voice/actions/**` (action output).
+
 ## Matching and scores
 
 Queries and record fields are lowercased, punctuation is normalized, and tokens are compared without word-order dependence. Built-in roles include SI, CI, DSP, SDPO, and SHO. Verified aliases come from the JSON dictionary; extra aliases can be set with `RESOLVER_CUSTOM_ALIASES=Canonical=alias1|alias2;Other=alias`.

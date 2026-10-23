@@ -19,4 +19,12 @@ public record UiAction(String type, String message, String field, String value, 
     public static UiAction setRecipients(List<Object> candidates) {
         return new UiAction("SET_RECIPIENTS", null, null, null, null, candidates);
     }
+
+    public static UiAction updateLabels(String operation, String label) {
+        return new UiAction("UPDATE_LABELS", null, "LABELS", label, operation, null);
+    }
+
+    public static UiAction requestSendConfirmation() {
+        return new UiAction("REQUEST_SEND_CONFIRMATION", "Confirm before sending", null, null, null, null);
+    }
 }

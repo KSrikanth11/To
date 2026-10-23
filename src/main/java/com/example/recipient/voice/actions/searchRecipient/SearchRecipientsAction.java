@@ -24,12 +24,16 @@ public class SearchRecipientsAction {
     }
 
     public UiAction apply(String transcript, CommandIntent command) {
-        List<Intent.Concept> concepts = aliases.concepts(String.join(" ", command.searchTerms()));
-        Intent intent = new Intent(transcript, concepts, "ALL".equals(command.scope()), command.recipientType());
-        ResolveRecipientResponse results = resolver.resolve(new ResolveRecipientRequest(transcript, null, null), intent);
+        ResolveRecipientResponse results = resolve(transcript, command);
         List<Object> candidates = new ArrayList<>();
         candidates.addAll(results.member_matches());
         candidates.addAll(results.subgroup_matches());
         return UiAction.setRecipients(candidates);
+    }
+
+    public ResolveRecipientResponse resolve(String transcript, CommandIntent command) {
+        List<Intent.Concept> concepts = aliases.concepts(String.join(" ", command.searchTerms()));
+        Intent intent = new Intent(transcript, concepts, "ALL".equals(command.scope()), command.recipientType());
+        return resolver.resolve(new ResolveRecipientRequest(transcript, null, null), intent);
     }
 }
