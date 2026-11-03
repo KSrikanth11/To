@@ -20,6 +20,7 @@ import com.example.recipient.AudioService.AudioFileRejectedException;
 import com.example.recipient.AudioService.SonioxException;
 import com.example.recipient.AudioService.SonioxTimeoutException;
 import com.example.recipient.AudioService.TranscriptRejectedException;
+import com.example.recipient.searchRecipient.service.CatalogNotConfiguredException;
 
 import jakarta.validation.ConstraintViolationException;
 
@@ -58,6 +59,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(Map.of("error", "Recipient database is temporarily unavailable"));
     }
+    @ExceptionHandler(CatalogNotConfiguredException.class)
+    ResponseEntity<?> catalogMissing(CatalogNotConfiguredException ex) {
+        log.warn("recipient.catalog.missing list_id={}", ex.listId());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("error", "Recipient catalog is not configured for this list"));
+    }
     @ExceptionHandler(SonioxTimeoutException.class)
     ResponseEntity<?> transcriptionTimeout() { return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).body(Map.of("error", "Audio transcription timed out")); }
     @ExceptionHandler(SonioxException.class)
@@ -79,7 +86,11 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(Exception.class)
     ResponseEntity<?> unexpected(Exception ex) {
-        log.error("request.error type={}", ex.getClass().getSimpleName());
+        Throwable root = ex;
+        while (root.getCause() != null && root.getCause() != root) root = root.getCause();
+        // The stack trace and root cause say which call failed (for example the OpenAI request behind a voice command).
+        log.error("request.error type={} message={} root_type={} root_message={}", ex.getClass().getSimpleName(),
+                ex.getMessage(), root.getClass().getSimpleName(), root.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Request could not be completed"));
     }
 }

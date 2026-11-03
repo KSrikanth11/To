@@ -1,0 +1,284 @@
+member_id,username,confidence,designation,rank,wing,station,zone,district
+7247721,acp-blnr-lo-kz-cyb@suraksha,Likely,Assistant Commissioner of Police (ACP),,Law & Order,Balanagar,Kukatpally Zone,Cyberabad Police Commissionerate
+7247720,acp-blnr-tfc-kz-cyb@suraksha,Likely,Assistant Commissioner of Police (ACP),,Traffic,Balanagar,Kukatpally Zone,Cyberabad Police Commissionerate
+7247723,acp-kphb-lo-kz-cyb@suraksha,Likely,Assistant Commissioner of Police (ACP),,Law & Order,KPHB Colony,Kukatpally Zone,Cyberabad Police Commissionerate
+7247718,acp-kply-tfc-kz-cyb@suraksha,Likely,Assistant Commissioner of Police (ACP),,Traffic,Kukatpally,Kukatpally Zone,Cyberabad Police Commissionerate
+7247722,acp-mdpr-lo-kz-cyb@suraksha,Likely,Assistant Commissioner of Police (ACP),,Law & Order,Madhapur,Kukatpally Zone,Cyberabad Police Commissionerate
+7247114,acp-mt-wgl@suraksha,Likely,Assistant Commissioner of Police (ACP),,Motor Transport?,,,Warangal Police Commissionerate
+7247719,acp-mypr-tfc-kz-cyb@suraksha,Likely,Assistant Commissioner of Police (ACP),,Traffic,Miyapur,Kukatpally Zone,Cyberabad Police Commissionerate
+7245966,acp-pdcell-mpc@suraksha,Needs review,Assistant Commissioner of Police (ACP),,?,,,Malkajgiri Police Commissionerate
+7247714,adcp-lo-kz-cyb@suraksha,Likely,Additional Deputy Commissioner of Police (Addl. DCP),,Law & Order,,Kukatpally Zone,Cyberabad Police Commissionerate
+7247280,adcp-slpy-cyb@suraksha,Likely,Additional Deputy Commissioner of Police (Addl. DCP),,,,Serilingampally Zone,Cyberabad Police Commissionerate
+7247716,adcp-sot-kz-cyb@suraksha,Likely,Additional Deputy Commissioner of Police (Addl. DCP),,Special Operations Team (SOT),,Kukatpally Zone,Cyberabad Police Commissionerate
+7247282,adcp-sot1-slpy-cyb@suraksha,Likely,Additional Deputy Commissioner of Police (Addl. DCP),,SOT-1,,Serilingampally Zone,Cyberabad Police Commissionerate
+7248539,addlcp-lno-sr-hyd@suraksha,Likely,Additional Commissioner of Police (Addl. CP),,Law & Order (L&O),South Range?,,Hyderabad City Police
+7249415,ado-carhqrs@suraksha,Likely,Administrative Officer?,,,,,City Armed Reserve Headquarters (CAR HQrs)
+7248546,cado-hyd@suraksha,Likely,Chief Administrative Officer?,,,,,Hyderabad City Police
+7246360,carhq-cswc-mswrm-fcc@suraksha,Likely,City Armed Reserve HQ (CAR HQ),,CSW Company?,Maheshwaram,,Future City Police Commissionerate
+7246363,carhq-mtos-mtp-mswrm-fcc@suraksha,Needs review,City Armed Reserve HQ (CAR HQ),,Motor Transport Office,"?, Maheshwaram",,Future City Police Commissionerate
+7247715,cc-adcp-lo-kz-cyb@suraksha,Likely,Camp Clerk (CC),,"Addl. DCP Office, Law & Order",,Kukatpally Zone,Cyberabad Police Commissionerate
+7247717,cc-adcp-sot-kz-cyb@suraksha,Likely,Camp Clerk (CC),,"Addl. DCP Office, Special Operations Team (SOT)",,Kukatpally Zone,Cyberabad Police Commissionerate
+7247709,cc-dcp-lo-kz-cyb@suraksha,Likely,Camp Clerk (CC),,"DCP Office, Law & Order",,Kukatpally Zone,Cyberabad Police Commissionerate
+7249871,cc-digzonevll-mbnr@suraksha,Likely,Camp Clerk (CC),,,DIG Zone-VII?,,Mahabubnagar District
+7247030,ci-bkd-kmr@suraksha,Likely,Circle Inspector (CI),,,Banswada?,,Kamareddy District
+7245751,ci-dnd-nlg@suraksha,Likely,Circle Inspector (CI),,,Devarakonda?,,Nalgonda District
+7247468,ci-ebym-bkgm@suraksha,Likely,Circle Inspector (CI),,,Yellandu? / Edulla Bayyaram?,,Bhadradri Kothagudem District
+7245760,ci-kmpl-nlg@suraksha,Likely,Circle Inspector (CI),,,Kanagal? / Kattangur?,,Nalgonda District
+7241767,ci-mmr-rgm@suraksha,Likely,Circle Inspector (CI),,,Mutharam?,,Ramagundam Police Commissionerate
+7241742,ci-mti-rgm@suraksha,Needs review,Circle Inspector (CI),,,?,,Ramagundam Police Commissionerate
+7241344,ci-nib-nzb@suraksha,Likely,Circle Inspector (CI),,,Narcotics Intelligence Bureau?,,Nizamabad Police Commissionerate
+7245267,ci-npr-mdk@suraksha,Likely,Circle Inspector (CI),,,Narsapur? / Nizampet,,Medak District
+7245730,ci-ntl-nlg@suraksha,Likely,Circle Inspector (CI),,,Narketpally?,,Nalgonda District
+7241331,ci-nzbnr-nzb@suraksha,Needs review,Circle Inspector (CI),,,?,,Nizamabad Police Commissionerate
+7241332,ci-nzbsr-nzb@suraksha,Needs review,Circle Inspector (CI),,,Nizamabad ?,,Nizamabad Police Commissionerate
+7241198,ci-ri-mt-vkb@suraksha,Needs review,Circle Inspector (CI),,Reserve Inspector (RI),?,,Vikarabad District
+7283835,ci-tfc-fmc-hydcity@suraksha,Likely,Circle Inspector (CI),,"Traffic, FMC?",,,Hyderabad City Police
+7245703,ci-tsfc-nlg@suraksha,Needs review,Circle Inspector (CI),,?,,,Nalgonda District
+7245064,ci-ygtr-ydr@suraksha,Likely,Circle Inspector (CI),,,Yadagirigutta Rural?,,Yadadri Bhuvanagiri District
+7247222,cmt-4bn-wgl@suraksha,Likely,Commandant?,,4th Battalion TGSP,,,Warangal Police Commissionerate
+7247708,dcp-lo-kz-cyb@suraksha,Likely,Deputy Commissioner of Police (DCP),,Law & Order,,Kukatpally Zone,Cyberabad Police Commissionerate
+7247275,dcp-slpy-cyb@suraksha,Likely,Deputy Commissioner of Police (DCP),,,,Serilingampally Zone,Cyberabad Police Commissionerate
+7248543,dcp-smit-hyd@suraksha,Needs review,Deputy Commissioner of Police (DCP),,?,,,Hyderabad City Police
+7249014,dfo-fire-kmm@suraksha,Needs review,?,,,Fire,,Khammam Police Commissionerate
+7246024,di-nrmt-mpc@suraksha,Likely,Detective Inspector (DI),,,Nacharam?,,Malkajgiri Police Commissionerate
+7246018,di-smpet-mpc@suraksha,Likely,Detective Inspector (DI),,,Shamirpet?,,Malkajgiri Police Commissionerate
+7241242,dig-klrm-rgm@suraksha,Needs review,Deputy Inspector General (DIG),,,?,,Ramagundam Police Commissionerate
+7245535,dsp-fv-mbd@suraksha,Needs review,Deputy Superintendent of Police (DSP),,?,,,Mahabubabad District
+7247219,dsp-itc-wrlz-wgl@suraksha,Likely,Deputy Superintendent of Police (DSP),,IT Cell,Warangal Zone?,,Warangal Police Commissionerate
+3658897,dspc-itc-strsntrg@suraksha,Needs review,DSP – Camp Office?,,IT Cell,,,?
+3658898,dspc-pcs-datacentre@suraksha,Likely,DSP – Camp Office?,,Police Computer Services (PCS),,,Data Centre
+7246359,eo-mswrm-fcc@suraksha,Likely,Estate Officer?,,,Maheshwaram,,Future City Police Commissionerate
+7245907,fpic-kmm@suraksha,Likely,Finger Print In-charge?,,,,,Khammam Police Commissionerate
+7247326,inspr-4c-cyb@suraksha,Likely,Inspector,,Cyber Crime Coordination Centre (4C)?,,,Cyberabad Police Commissionerate
+7248111,inspr-abdp-mpc@suraksha,Likely,Inspector,,,Abdullapurmet?,,Malkajgiri Police Commissionerate
+7247344,inspr-cat-cyb@suraksha,Likely,Inspector,,CAT?,,,Cyberabad Police Commissionerate
+7247741,inspr-ccs-kz-cyb@suraksha,Likely,Inspector,,Central Crime Station (CCS),,Kukatpally Zone,Cyberabad Police Commissionerate
+7247328,inspr-ccs-slpy-cyb@suraksha,Likely,Inspector,,Central Crime Station (CCS),,Serilingampally Zone,Cyberabad Police Commissionerate
+7246354,inspr-fgpt-mswrm-fcc@suraksha,Likely,Inspector,,Finger Print?,Maheshwaram,,Future City Police Commissionerate
+7247724,inspr-itc-kz-cyb@suraksha,Likely,Inspector,,IT Cell,,Kukatpally Zone,Cyberabad Police Commissionerate
+7246022,inspr-nrmt-mpc@suraksha,Likely,Inspector,,,Nacharam?,,Malkajgiri Police Commissionerate
+7246058,inspr-pcrmitc-mpc@suraksha,Likely,Inspector,,PCR / MITC?,,,Malkajgiri Police Commissionerate
+7247345,inspr-pcrnpsioc-cyb@suraksha,Needs review,Inspector,,?,,,Cyberabad Police Commissionerate
+7247738,inspr-sb-kz-cyb@suraksha,Likely,Inspector,,Special Branch (SB),,Kukatpally Zone,Cyberabad Police Commissionerate
+7247321,inspr-sb-slpy-cyb@suraksha,Likely,Inspector,,Special Branch (SB),,Serilingampally Zone,Cyberabad Police Commissionerate
+7247193,inspr-sheteams-wl@suraksha,Needs review,Inspector,,SHE Teams,,,?
+7246017,inspr-smpet-mpc@suraksha,Likely,Inspector,,,Shamirpet?,,Malkajgiri Police Commissionerate
+7247740,inspr-sot-kz-cyb@suraksha,Likely,Inspector,,Special Operations Team (SOT),,Kukatpally Zone,Cyberabad Police Commissionerate
+7247330,inspr-sot-slpycyb@suraksha,Likely,Inspector,,Special Operations Team (SOT),,,"Serilingampally?, Cyberabad"
+7246008,inspr-zc-mlkg-mpc@suraksha,Likely,Inspector,,Zonal Control?,Malkajgiri,,Malkajgiri Police Commissionerate
+3803195,itc-asi1271-mcc@suraksha,Needs review,IT Cell / IT Core,Assistant Sub-Inspector (ASI) No. 1271,,,,MCC (unit code – not decoded)
+3803186,itc-asi1328-str@suraksha,Likely,IT Cell / IT Core,Assistant Sub-Inspector (ASI) No. 1328,,,,Stores?
+3803191,itc-asi1345-mmc@suraksha,Needs review,IT Cell / IT Core,Assistant Sub-Inspector (ASI) No. 1345,,,,MMC (unit code – not decoded)
+3803194,itc-asi1364-mmc@suraksha,Needs review,IT Cell / IT Core,Assistant Sub-Inspector (ASI) No. 1364,,,,MMC (unit code – not decoded)
+3803192,itc-asi1385-mmc@suraksha,Needs review,IT Cell / IT Core,Assistant Sub-Inspector (ASI) No. 1385,,,,MMC (unit code – not decoded)
+3803196,itc-asi1388-mcc@suraksha,Needs review,IT Cell / IT Core,Assistant Sub-Inspector (ASI) No. 1388,,,,MCC (unit code – not decoded)
+3803198,itc-asi1429-mcc@suraksha,Needs review,IT Cell / IT Core,Assistant Sub-Inspector (ASI) No. 1429,,,,MCC (unit code – not decoded)
+3803197,itc-asi1466-mcc@suraksha,Needs review,IT Cell / IT Core,Assistant Sub-Inspector (ASI) No. 1466,,,,MCC (unit code – not decoded)
+3668519,itc-dsp-inst@suraksha,Likely,IT Cell / IT Core,,DSP Office,,,Institute?
+3700379,Itc-dsp-mkg-fcc@suraksha,Needs review,IT Cell / IT Core,,DSP Office,?,,Future City Police Commissionerate
+3803467,itc-hc1535-mcc@suraksha,Needs review,IT Cell / IT Core,Head Constable (HC) No. 1535,,,,MCC (unit code – not decoded)
+3803488,itc-hc1551-mmc@suraksha,Needs review,IT Cell / IT Core,Head Constable (HC) No. 1551,,,,MMC (unit code – not decoded)
+3803460,itc-hc1557-mcc@suraksha,Needs review,IT Cell / IT Core,Head Constable (HC) No. 1557,,,,MCC (unit code – not decoded)
+3803465,itc-hc1564-mcc@suraksha,Needs review,IT Cell / IT Core,Head Constable (HC) No. 1564,,,,MCC (unit code – not decoded)
+3803210,itc-hc1588-cyb-bz@suraksha,Likely,IT Cell / IT Core,Head Constable (HC) No. 1588,,,,"Balanagar Zone?, Cyberabad Police Commissionerate"
+7249896,itc-hc1617-cvl@suraksha,Needs review,IT Cell / IT Core,Head Constable (HC) No. 1617,,,,?
+3803464,itc-hc1627-mcc@suraksha,Needs review,IT Cell / IT Core,Head Constable (HC) No. 1627,,,,MCC (unit code – not decoded)
+3803426,itc-hc1659-str@suraksha,Likely,IT Cell / IT Core,Head Constable (HC) No. 1659,,,,Stores?
+3803454,itc-hc1687-mcc@suraksha,Needs review,IT Cell / IT Core,Head Constable (HC) No. 1687,,,,MCC (unit code – not decoded)
+3803489,itc-hc1719-mmc@suraksha,Needs review,IT Cell / IT Core,Head Constable (HC) No. 1719,,,,MMC (unit code – not decoded)
+3803486,itc-hc1732-mmc@suraksha,Needs review,IT Cell / IT Core,Head Constable (HC) No. 1732,,,,MMC (unit code – not decoded)
+3803209,itc-hc1759-str@suraksha,Likely,IT Cell / IT Core,Head Constable (HC) No. 1759,,,,Stores?
+3803408,itc-hc1762-srl@suraksha,Likely,IT Cell / IT Core,Head Constable (HC) No. 1762,,,,Rajanna Sircilla District?
+3803409,itc-hc1764-srl@suraksha,Likely,IT Cell / IT Core,Head Constable (HC) No. 1764,,,,Rajanna Sircilla District?
+3803211,itc-hc1827-cyb-bz@suraksha,Likely,IT Cell / IT Core,Head Constable (HC) No. 1827,,,,"Balanagar Zone?, Cyberabad Police Commissionerate"
+3785936,itc-inpsr-cyb-sz@suraksha,Likely,IT Cell / IT Core,,Inspector,,,"South Zone?, Cyberabad Police Commissionerate"
+3704356,itc-inspr-cyb-bz@suraksha,Likely,IT Cell / IT Core,,Inspector,,,"Balanagar Zone?, Cyberabad Police Commissionerate"
+3813262,itc-inspr-cyb-kpl@suraksha,Likely,IT Cell / IT Core,,Inspector,,,"Kukatpally?, Cyberabad Police Commissionerate"
+3813260,itc-inspr-cyb-slpy@suraksha,Likely,IT Cell / IT Core,,Inspector,,,"Serilingampally Zone, Cyberabad Police Commissionerate"
+3704357,itc-inspr-cyb-sz@suraksha,Likely,IT Cell / IT Core,,Inspector,,,"South Zone?, Cyberabad Police Commissionerate"
+3842785,itc-inspr-hyd-ssb@suraksha,Needs review,IT Cell / IT Core,,Inspector,,,"?, Hyderabad City Police"
+3658902,itc-inspr-mcc@suraksha,Needs review,IT Cell / IT Core,,Inspector,,,MCC (unit code – not decoded)
+3705993,itc-inspr-mmc@suraksha,Needs review,IT Cell / IT Core,,Inspector,,,MMC (unit code – not decoded)
+3703755,itc-mastercontrol-out@suraksha,Needs review,IT Cell / IT Core,,,,Master Control Room,?
+3803512,itc-pc1874-mcc@suraksha,Needs review,IT Cell / IT Core,Police Constable (PC) No. 1874,,,,MCC (unit code – not decoded)
+3803490,itc-pc1881-mmc@suraksha,Needs review,IT Cell / IT Core,Police Constable (PC) No. 1881,,,,MMC (unit code – not decoded)
+3803514,itc-pc1890-mcc@suraksha,Needs review,IT Cell / IT Core,Police Constable (PC) No. 1890,,,,MCC (unit code – not decoded)
+3803492,itc-pc1895-mmc@suraksha,Needs review,IT Cell / IT Core,Police Constable (PC) No. 1895,,,,MMC (unit code – not decoded)
+3803431,itc-pc1902-str@suraksha,Likely,IT Cell / IT Core,Police Constable (PC) No. 1902,,,,Stores?
+3803491,itc-pc1910-mmc@suraksha,Needs review,IT Cell / IT Core,Police Constable (PC) No. 1910,,,,MMC (unit code – not decoded)
+3803493,itc-pc1913-mmc@suraksha,Needs review,IT Cell / IT Core,Police Constable (PC) No. 1913,,,,MMC (unit code – not decoded)
+3803513,itc-pc1921-mcc@suraksha,Needs review,IT Cell / IT Core,Police Constable (PC) No. 1921,,,,MCC (unit code – not decoded)
+3803214,itc-pc2042-cyb-bz@suraksha,Likely,IT Cell / IT Core,Police Constable (PC) No. 2042,,,,"Balanagar Zone?, Cyberabad Police Commissionerate"
+3803496,itc-pc2053-mmc@suraksha,Needs review,IT Cell / IT Core,Police Constable (PC) No. 2053,,,,MMC (unit code – not decoded)
+3803494,itc-pc2068-mmc@suraksha,Needs review,IT Cell / IT Core,Police Constable (PC) No. 2068,,,,MMC (unit code – not decoded)
+3803432,itc-pc2100-str@suraksha,Likely,IT Cell / IT Core,Police Constable (PC) No. 2100,,,,Stores?
+3803425,itc-pc2112-srl@suraksha,Likely,IT Cell / IT Core,Police Constable (PC) No. 2112,,,,Rajanna Sircilla District?
+3803433,itc-pc2140-str@suraksha,Likely,IT Cell / IT Core,Police Constable (PC) No. 2140,,,,Stores?
+3803434,itc-pc2175-str@suraksha,Likely,IT Cell / IT Core,Police Constable (PC) No. 2175,,,,Stores?
+3803495,itc-pc2195-mmc@suraksha,Needs review,IT Cell / IT Core,Police Constable (PC) No. 2195,,,,MMC (unit code – not decoded)
+3803497,itc-pc2207-mmc@suraksha,Needs review,IT Cell / IT Core,Police Constable (PC) No. 2207,,,,MMC (unit code – not decoded)
+3803523,itc-pc2213-mcc@suraksha,Needs review,IT Cell / IT Core,Police Constable (PC) No. 2213,,,,MCC (unit code – not decoded)
+3803435,itc-pc2235-str@suraksha,Likely,IT Cell / IT Core,Police Constable (PC) No. 2235,,,,Stores?
+3803498,itc-pc2250-mmc@suraksha,Needs review,IT Cell / IT Core,Police Constable (PC) No. 2250,,,,MMC (unit code – not decoded)
+3803499,itc-pc2259-mmc@suraksha,Needs review,IT Cell / IT Core,Police Constable (PC) No. 2259,,,,MMC (unit code – not decoded)
+3803727,itc-pwpc2116-mbd@suraksha,Likely,IT Cell / IT Core,Woman Police Constable (WPC)? No. 2116,,,,Mahabubabad District
+3785895,itc-si-nla@suraksha,Needs review,IT Cell / IT Core,,Sub-Inspector,,,NLA (unit code – not decoded)
+3785907,itc-si-srl@suraksha,Likely,IT Cell / IT Core,,Sub-Inspector,,,Rajanna Sircilla District?
+3785927,itc-si1-mcc@suraksha,Needs review,IT Cell / IT Core,Sub-Inspector (SI)-I,,,,MCC (unit code – not decoded)
+3785919,itc-si1-mmc@suraksha,Needs review,IT Cell / IT Core,Sub-Inspector (SI)-I,,,,MMC (unit code – not decoded)
+7286760,itc-si1096-mcc@suraksha,Needs review,IT Cell / IT Core,Sub-Inspector (SI) No. 1096,,,,MCC (unit code – not decoded)
+3785871,itc-si1982-cyb-bz@suraksha,Likely,IT Cell / IT Core,Sub-Inspector (SI) No. 1982,,,,"Balanagar Zone?, Cyberabad Police Commissionerate"
+3785928,itc-si2-mcc@suraksha,Needs review,IT Cell / IT Core,Sub-Inspector (SI)-II,,,,MCC (unit code – not decoded)
+3785920,itc-si2-mmc@suraksha,Needs review,IT Cell / IT Core,Sub-Inspector (SI)-II,,,,MMC (unit code – not decoded)
+3785929,itc-si3-mcc@suraksha,Needs review,IT Cell / IT Core,Sub-Inspector (SI)-III,,,,MCC (unit code – not decoded)
+3785930,itc-si4-mcc@suraksha,Needs review,IT Cell / IT Core,Sub-Inspector (SI)-IV,,,,MCC (unit code – not decoded)
+3785931,itc-si5-mcc@suraksha,Needs review,IT Cell / IT Core,Sub-Inspector (SI)-V,,,,MCC (unit code – not decoded)
+3803463,itc-whc1529-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Head Constable (WHC) No. 1529,,,,MCC (unit code – not decoded)
+3803455,itc-whc1607-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Head Constable (WHC) No. 1607,,,,MCC (unit code – not decoded)
+3803462,itc-whc1610-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Head Constable (WHC) No. 1610,,,,MCC (unit code – not decoded)
+3803213,itc-whc1611-cyb-bz@suraksha,Likely,IT Cell / IT Core,Woman Head Constable (WHC) No. 1611,,,,"Balanagar Zone?, Cyberabad Police Commissionerate"
+3803428,itc-whc1626-str@suraksha,Likely,IT Cell / IT Core,Woman Head Constable (WHC) No. 1626,,,,Stores?
+3803429,itc-whc1646-str@suraksha,Likely,IT Cell / IT Core,Woman Head Constable (WHC) No. 1646,,,,Stores?
+3803459,itc-whc1650-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Head Constable (WHC) No. 1650,,,,MCC (unit code – not decoded)
+3803458,itc-whc1656-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Head Constable (WHC) No. 1656,,,,MCC (unit code – not decoded)
+3803457,itc-whc1696-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Head Constable (WHC) No. 1696,,,,MCC (unit code – not decoded)
+3803427,itc-whc1710-str@suraksha,Likely,IT Cell / IT Core,Woman Head Constable (WHC) No. 1710,,,,Stores?
+3803456,itc-whc1730-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Head Constable (WHC) No. 1730,,,,MCC (unit code – not decoded)
+3803461,itc-whc1760-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Head Constable (WHC) No. 1760,,,,MCC (unit code – not decoded)
+3803410,itc-whc1761-srl@suraksha,Likely,IT Cell / IT Core,Woman Head Constable (WHC) No. 1761,,,,Rajanna Sircilla District?
+3803515,itc-wpc1520-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 1520,,,,MCC (unit code – not decoded)
+3803506,itc-wpc1546-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 1546,,,,MCC (unit code – not decoded)
+3803212,itc-wpc1691-badh@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 1691,,,,?
+3803519,itc-wpc1760-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 1760,,,,MCC (unit code – not decoded)
+3803507,itc-wpc1880-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 1880,,,,MCC (unit code – not decoded)
+3803508,itc-wpc1894-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 1894,,,,MCC (unit code – not decoded)
+3803509,itc-wpc1899-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 1899,,,,MCC (unit code – not decoded)
+3803510,itc-wpc1929-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 1929,,,,MCC (unit code – not decoded)
+3803511,itc-wpc1930-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 1930,,,,MCC (unit code – not decoded)
+3803215,itc-wpc1939-cyb-bz@suraksha,Likely,IT Cell / IT Core,Woman Police Constable (WPC) No. 1939,,,,"Balanagar Zone?, Cyberabad Police Commissionerate"
+3803430,itc-wpc1976-str@suraksha,Likely,IT Cell / IT Core,Woman Police Constable (WPC) No. 1976,,,,Stores?
+3803520,itc-wpc2079-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 2079,,,,MCC (unit code – not decoded)
+3803522,itc-wpc2084-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 2084,,,,MCC (unit code – not decoded)
+3803517,itc-wpc2087-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 2087,,,,MCC (unit code – not decoded)
+3803521,itc-wpc2102-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 2102,,,,MCC (unit code – not decoded)
+3803516,itc-wpc2129-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 2129,,,,MCC (unit code – not decoded)
+3803518,itc-wpc2174-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 2174,,,,MCC (unit code – not decoded)
+3803423,itc-wpc2199-srl@suraksha,Likely,IT Cell / IT Core,Woman Police Constable (WPC) No. 2199,,,,Rajanna Sircilla District?
+3803424,itc-wpc2217-srl@suraksha,Likely,IT Cell / IT Core,Woman Police Constable (WPC) No. 2217,,,,Rajanna Sircilla District?
+3803367,itc-wpc2223-ngl@suraksha,Needs review,IT Cell / IT Core,Woman Police Constable (WPC) No. 2223,,,,?
+3785921,itc-wsi-mmc@suraksha,Needs review,IT Cell / IT Core,,Woman Sub-Inspector (WSI),,,MMC (unit code – not decoded)
+3785923,itc-wsi1-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Sub-Inspector (WSI)-I,,,,MCC (unit code – not decoded)
+3785896,itc-wsi1-nla@suraksha,Needs review,IT Cell / IT Core,Woman Sub-Inspector (WSI)-I,,,,NLA (unit code – not decoded)
+3785924,itc-wsi2-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Sub-Inspector (WSI)-II,,,,MCC (unit code – not decoded)
+3785897,itc-wsi2-nla@suraksha,Needs review,IT Cell / IT Core,Woman Sub-Inspector (WSI)-II,,,,NLA (unit code – not decoded)
+3785925,itc-wsi3-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Sub-Inspector (WSI)-III,,,,MCC (unit code – not decoded)
+3785926,itc-wsi4-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Sub-Inspector (WSI)-IV,,,,MCC (unit code – not decoded)
+3785932,itc-wsi5-mcc@suraksha,Needs review,IT Cell / IT Core,Woman Sub-Inspector (WSI)-V,,,,MCC (unit code – not decoded)
+7248540,jtcp-lno-nr-hyd@suraksha,Likely,Joint Commissioner of Police (Jt. CP),,Law & Order (L&O),North Range?,,Hyderabad City Police
+7247737,mike1-control-kz-cyb@suraksha,Likely,Mike (radio call-sign)-I,,Control Room,,Kukatpally Zone,Cyberabad Police Commissionerate
+7245937,mksc-mpc@suraksha,Needs review,?,,,,,Malkajgiri Police Commissionerate
+7246270,nib-asf@suraksha,Likely,Narcotics Intelligence Bureau?,,,,,Komaram Bheem Asifabad District
+7241244,nib-rgm@suraksha,Likely,Narcotics Intelligence Bureau?,,,,,Ramagundam Police Commissionerate
+7247742,pc-itcore-kz-cyb@suraksha,Likely,Police Constable (PC),,IT Core,,Kukatpally Zone,Cyberabad Police Commissionerate
+7245806,ps-krp-kmm@suraksha,Likely,Police Station,,,Kusumanchi?,,Khammam Police Commissionerate
+7245841,ps-vmbr-kmm@suraksha,Likely,Police Station,,,Vemsoor?,,Khammam Police Commissionerate
+7248549,pvcell-hyd@suraksha,Likely,Petition Verification Cell?,,,,,Hyderabad City Police
+7245712,ri-spty-nlg@suraksha,Needs review,Reserve Inspector (RI),,,?,,Nalgonda District
+7246005,ri-wfspts-mpc@suraksha,Likely,Reserve Inspector (RI),,Welfare & Sports?,,,Malkajgiri Police Commissionerate
+7245906,rmoffice-kmm@suraksha,Likely,RM Office?,,,,,Khammam Police Commissionerate
+7253476,sb-ctr-srpt@suraksha,Needs review,Special Branch (SB),,,?,,Suryapet District
+7246526,sbc-jgl@suraksha,Likely,Special Branch – Control?,,,,,Jagtial District
+7247376,scnst-sn-asst-cyb@suraksha,Needs review,?,,Assistant,?,,Cyberabad Police Commissionerate
+7247127,sho-ajm-wgl@suraksha,Needs review,Station House Officer (SHO),,,?,,Warangal Police Commissionerate
+7247725,sho-alpr-lo-kz-cyb@suraksha,Likely,Station House Officer (SHO),,Law & Order,Allapur,Kukatpally Zone,Cyberabad Police Commissionerate
+7241165,sho-amt-jsb@suraksha,Needs review,Station House Officer (SHO),,,?,,Jayashankar Bhupalpally District
+7246577,sho-ao-nkl@suraksha,Needs review,Station House Officer (SHO),,,?,,Nagarkurnool District
+7241217,sho-bbd-vkb@suraksha,Likely,Station House Officer (SHO),,,Bantwaram? / Bomraspet,,Vikarabad District
+7246631,sho-bgmpt-sdpt@suraksha,Likely,Station House Officer (SHO),,,Begumpet (Siddipet)?,,Siddipet Police Commissionerate
+7246508,sho-bgrm-jgl@suraksha,Likely,Station House Officer (SHO),,,Beerpur?,,Jagtial District
+7247050,sho-bkd-kmr@suraksha,Likely,Station House Officer (SHO),,,Banswada?,,Kamareddy District
+7247726,sho-blnr-lo-kz-cyb@suraksha,Likely,Station House Officer (SHO),,Law & Order,Balanagar,Kukatpally Zone,Cyberabad Police Commissionerate
+7247736,sho-blnr-tfc-kz-cyb@suraksha,Likely,Station House Officer (SHO),,Traffic,Balanagar,Kukatpally Zone,Cyberabad Police Commissionerate
+7246624,sho-bmpl-sdpt@suraksha,Likely,Station House Officer (SHO),,,Bhoompally?,,Siddipet Police Commissionerate
+7246229,sho-bmpr-add@suraksha,Likely,Station House Officer (SHO),,,Boath? / Bheempoor,,Adilabad District
+7247167,sho-bnp-wgl@suraksha,Likely,Station House Officer (SHO),,,Bachannapet?,,Warangal Police Commissionerate
+7246503,sho-brpr-jgl@suraksha,Likely,Station House Officer (SHO),,,Buggaram?,,Jagtial District
+7241207,sho-cgml-vkb@suraksha,Likely,Station House Officer (SHO),,,Chowdapur? / Chengomul,,Vikarabad District
+7245756,sho-chpp-nlg@suraksha,Likely,Station House Officer (SHO),,,Chityal?,,Nalgonda District
+7245572,sho-cngr-mbd@suraksha,Likely,Station House Officer (SHO),,,Chinnagudur?,,Mahabubabad District
+7245675,sho-cpl-sgr@suraksha,Likely,Station House Officer (SHO),,,Chinthakunta? / Chowtakur?,,Sangareddy District
+7244846,sho-dbd-nrl@suraksha,Likely,Station House Officer (SHO),,,Dilawarpur? / Dasturabad,,Nirmal District
+7241208,sho-dma-vkb@suraksha,Likely,Station House Officer (SHO),,,Dharur?,,Vikarabad District
+7245752,sho-dnd-nlg@suraksha,Likely,Station House Officer (SHO),,,Devarakonda?,,Nalgonda District
+7247032,sho-dnp-kmr@suraksha,Likely,Station House Officer (SHO),,,Dichpally? / Gandhari?,,Kamareddy District
+7247469,sho-ebym-bkgm@suraksha,Likely,Station House Officer (SHO),,,Yellandu? / Edulla Bayyaram?,,Bhadradri Kothagudem District
+7241110,sho-elladhakunta-knr@suraksha,Likely,Station House Officer (SHO),,,Elkathurthy? (Elladhakunta),,Karimnagar Police Commissionerate
+7245553,sho-ggm-mbd@suraksha,Likely,Station House Officer (SHO),,,Garla?,,Mahabubabad District
+7241161,sho-gkpl-jsb@suraksha,Likely,Station House Officer (SHO),,,Ghanpur (Mulug)? / Gorrekunta,,Jayashankar Bhupalpally District
+7246627,sho-grm-sdpt@suraksha,Likely,Station House Officer (SHO),,,Gauraram?,,Siddipet Police Commissionerate
+7245556,sho-ing-mbd@suraksha,Likely,Station House Officer (SHO),,,Inugurthy?,,Mahabubabad District
+7247936,sho-kdpr-gdl@suraksha,Needs review,Station House Officer (SHO),,,?,,Jogulamba Gadwal District
+7245273,sho-klcm-mdk@suraksha,Likely,Station House Officer (SHO),,,Kowdipally? / Kulcharam,,Medak District
+7245761,sho-kmpl-nlg@suraksha,Likely,Station House Officer (SHO),,,Kanagal? / Kattangur?,,Nalgonda District
+7247461,sho-kmrm-bkgm@suraksha,Likely,Station House Officer (SHO),,,Komararam?,,Bhadradri Kothagudem District
+7247732,sho-kphb-tfc-kz-cyb@suraksha,Likely,Station House Officer (SHO),,Traffic,KPHB Colony,Kukatpally Zone,Cyberabad Police Commissionerate
+7247727,sho-kply-lo-kz-cyb@suraksha,Likely,Station House Officer (SHO),,Law & Order,Kukatpally,Kukatpally Zone,Cyberabad Police Commissionerate
+7247733,sho-kply-tfc-kz-cyb@suraksha,Likely,Station House Officer (SHO),,Traffic,Kukatpally,Kukatpally Zone,Cyberabad Police Commissionerate
+7245805,sho-krp-kmm@suraksha,Likely,Station House Officer (SHO),,,Kusumanchi?,,Khammam Police Commissionerate
+7241729,sho-ksrp-rgm@suraksha,Likely,Station House Officer (SHO),,,Kalvasrirampur?,,Ramagundam Police Commissionerate
+7245552,sho-ktd-mbd@suraksha,Likely,Station House Officer (SHO),,,Kuravi? / Kothaguda,,Mahabubabad District
+7241164,sho-kyr-jsb@suraksha,Needs review,Station House Officer (SHO),,,?,,Jayashankar Bhupalpally District
+7247728,sho-mdpr-lo-kz-cyb@suraksha,Likely,Station House Officer (SHO),,Law & Order,Madhapur,Kukatpally Zone,Cyberabad Police Commissionerate
+7246322,sho-mgl-mswrm-fcc@suraksha,Likely,Station House Officer (SHO),,,"Madgul?, Maheshwaram",,Future City Police Commissionerate
+7241768,sho-mmr-rgm@suraksha,Likely,Station House Officer (SHO),,,Mutharam?,,Ramagundam Police Commissionerate
+7241744,sho-mmt-rgm@suraksha,Likely,Station House Officer (SHO),,,Manthani?,,Ramagundam Police Commissionerate
+7246623,sho-mrd-sdpt@suraksha,Likely,Station House Officer (SHO),,,Markook?,,Siddipet Police Commissionerate
+7246628,sho-mrk-sdpt@suraksha,Likely,Station House Officer (SHO),,,Mirdoddi?,,Siddipet Police Commissionerate
+7241743,sho-mti-rgm@suraksha,Needs review,Station House Officer (SHO),,,?,,Ramagundam Police Commissionerate
+7247730,sho-mypr-lo-kz-cyb@suraksha,Likely,Station House Officer (SHO),,Law & Order,Miyapur,Kukatpally Zone,Cyberabad Police Commissionerate
+7247734,sho-mypr-tfc-kz-cyb@suraksha,Likely,Station House Officer (SHO),,Traffic,Miyapur,Kukatpally Zone,Cyberabad Police Commissionerate
+7245755,sho-ndg-nlg@suraksha,Likely,Station House Officer (SHO),,,Nidamanur?,,Nalgonda District
+7241779,sho-nli-rgm@suraksha,Likely,Station House Officer (SHO),,,Neelwai?,,Ramagundam Police Commissionerate
+7245510,sho-nlrp-mlg@suraksha,Needs review,Station House Officer (SHO),,,?,,Mulugu District
+7244838,sho-npur-nrl@suraksha,Likely,Station House Officer (SHO),,,Narsapur (G)?,,Nirmal District
+7246237,sho-nrgd-add@suraksha,Likely,Station House Officer (SHO),,,Narnoor? / Gadiguda,,Adilabad District
+7245731,sho-ntl-nlg@suraksha,Likely,Station House Officer (SHO),,,Narketpally?,,Nalgonda District
+7247311,sho-pcrnpsioc-cyb@suraksha,Needs review,Station House Officer (SHO),,?,,,Cyberabad Police Commissionerate
+7246570,sho-pdr-nkl@suraksha,Likely,Station House Officer (SHO),,,Peddakothapally?,,Nagarkurnool District
+7245749,sho-pdv-nlg@suraksha,Likely,Station House Officer (SHO),,,PA Pally / Pedda Adiserlapally?,,Nalgonda District
+7245518,sho-per-mlg@suraksha,Likely,Station House Officer (SHO),,,Peruru?,,Mulugu District
+7247053,sho-pkdl-kmr@suraksha,Likely,Station House Officer (SHO),,,Pitlam?,,Kamareddy District
+7246561,sho-pkp-nkl@suraksha,Likely,Station House Officer (SHO),,,Pentlavelli? / Peddakothapally,,Nagarkurnool District
+7241731,sho-pkpl-rgm@suraksha,Needs review,Station House Officer (SHO),,,?,,Ramagundam Police Commissionerate
+7246293,sho-ppt-asf@suraksha,Likely,Station House Officer (SHO),,,Penchikalpet?,,Komaram Bheem Asifabad District
+7246338,sho-pshp-chvl-fcc@suraksha,Needs review,Station House Officer (SHO),,,"?, Chevella",,Future City Police Commissionerate
+7247735,sho-ptch-tfc-kz-cyb@suraksha,Likely,Station House Officer (SHO),,Traffic,Patancheru,Kukatpally Zone,Cyberabad Police Commissionerate
+7246562,sho-ptvy-nkl@suraksha,Needs review,Station House Officer (SHO),,,?,,Nagarkurnool District
+7247731,sho-rcpm-tfc-kz-cyb@suraksha,Likely,Station House Officer (SHO),,Traffic,RC Puram,Kukatpally Zone,Cyberabad Police Commissionerate
+7247729,sho-rdgm-lo-kz-cyb@suraksha,Likely,Station House Officer (SHO),,Law & Order,Raidurgam,Kukatpally Zone,Cyberabad Police Commissionerate
+7246620,sho-rjpt-sdpt@suraksha,Likely,Station House Officer (SHO),,,Rajapet?,,Siddipet Police Commissionerate
+7246564,sho-sdpr-nkl@suraksha,Needs review,Station House Officer (SHO),,,?,,Nagarkurnool District
+7241369,sho-sk-nzb@suraksha,Needs review,Station House Officer (SHO),,,?,,Nizamabad Police Commissionerate
+7246557,sho-tdr-nkl@suraksha,Likely,Station House Officer (SHO),,,Telkapally? / Thadoor,,Nagarkurnool District
+7246319,sho-thkp-mswrm-fcc@suraksha,Likely,Station House Officer (SHO),,,"Talakondapally?, Maheshwaram",,Future City Police Commissionerate
+7241760,sho-tlgl-rgm@suraksha,Needs review,Station House Officer (SHO),,,?,,Ramagundam Police Commissionerate
+7246572,sho-urk-nkl@suraksha,Likely,Station House Officer (SHO),,,Urkondapet?,,Nagarkurnool District
+7245840,sho-vmbr-kmm@suraksha,Likely,Station House Officer (SHO),,,Vemsoor?,,Khammam Police Commissionerate
+7247137,sho-vng-wgl@suraksha,Needs review,Station House Officer (SHO),,,?,,Warangal Police Commissionerate
+7245748,sho-vpit-nlg@suraksha,Needs review,Station House Officer (SHO),,,?,,Nalgonda District
+7245091,sho-ygttr-ydr@suraksha,Likely,Station House Officer (SHO),,,Yadagirigutta Traffic?,,Yadadri Bhuvanagiri District
+7245705,si-brs-nlg@suraksha,Likely,Sub-Inspector (SI),,,Bharosa?,,Nalgonda District
+7284014,si-cms-rsla@suraksha,Needs review,Sub-Inspector (SI),,,?,,Rajanna Sircilla District
+7247739,si-fpb-kz-cyb@suraksha,Likely,Sub-Inspector (SI),,Finger Print Bureau (FPB),,Kukatpally Zone,Cyberabad Police Commissionerate
+7247143,si-knpr-wgl@suraksha,Likely,Sub-Inspector (SI),,,Khanapur?,,Warangal Police Commissionerate
+7246155,si-ndgdm-srpt@suraksha,Likely,Sub-Inspector (SI),,,Neredcherla?,,Suryapet District
+7244781,si-spectrum-hqrs@suraksha,Likely,Sub-Inspector (SI),,Spectrum?,,,Headquarters
+7246145,si-tmlg-srpt@suraksha,Likely,Sub-Inspector (SI),,,Thungathurthy?,,Suryapet District
+7246355,sip-fgpt-mswrm-fcc@suraksha,Likely,Sub-Inspector of Police (SI),,Finger Print?,Maheshwaram,,Future City Police Commissionerate
+7247085,sip2-dnp-kmr@suraksha,Likely,Sub-Inspector of Police (SI)-II,,,Dichpally? / Gandhari?,,Kamareddy District
+7248820,spdnt-io-mswrm-fcc@suraksha,Likely,Superintendent (Ministerial),,Inward/Outward?,Maheshwaram,,Future City Police Commissionerate
+7247380,supdt-rnt-cyb@suraksha,Needs review,Superintendent (Ministerial),,?,,,Cyberabad Police Commissionerate
+7247374,supdt-sr-cyb@suraksha,Likely,Superintendent (Ministerial),,Service Register Section?,,,Cyberabad Police Commissionerate
+7248548,supdt-tnl-hyd@suraksha,Needs review,Superintendent (Ministerial),,,?,,Hyderabad City Police
+7246356,vr-mswrm-fcc@suraksha,Needs review,?,,,Maheshwaram,,Future City Police Commissionerate
+7246009,zc-mlkg-mpc@suraksha,Likely,Zonal Control?,,,Malkajgiri,,Malkajgiri Police Commissionerate

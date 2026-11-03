@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import com.example.recipient.searchRecipient.model.Intent;
+import com.example.recipient.searchRecipient.service.OpenAiIntentParser;
 import com.example.recipient.voice.command.model.CommandIntent;
 import com.example.recipient.voice.command.model.ComposeFormState;
 import com.example.recipient.voice.command.model.VoiceCommandContext;
@@ -23,10 +24,12 @@ public class IntentExtractor {
     private final RestClient client;
     private final ObjectMapper mapper;
     private final String model;
+    private final String temperature;
 
     public IntentExtractor(RestClient.Builder builder, ObjectMapper mapper,
                            @Value("${llm.api-key:${OPENAI_API_KEY:${LLM_API_KEY:}}}") String key,
-                           @Value("${llm.model:gpt-4.1-mini}") String model) {
+                           @Value("${llm.model:gpt-4.1-mini}") String model,
+                           @Value("${llm.temperature:}") String temperature) {
         HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofSeconds(8));
@@ -34,11 +37,12 @@ public class IntentExtractor {
                 .defaultHeader("Authorization", "Bearer " + key).build();
         this.mapper = mapper;
         this.model = model;
+        this.temperature = temperature;
     }
 
     public CommandIntent extract(String transcript, ComposeFormState form) {
         return extractCommands(transcript, form).stream().findFirst()
-                .orElse(new CommandIntent(CommandIntent.IntentType.UNKNOWN, List.of(), Intent.RecipientType.AUTO,
+                .orElse(new CommandIntent(CommandIntent.IntentType.UNKNOWN, List.of(), List.of(), Intent.RecipientType.AUTO,
                         "UNSPECIFIED", null, List.of(), null, 0.0));
     }
 
@@ -60,6 +64,8 @@ public class IntentExtractor {
                     .add(mapper.createObjectNode().put("role", "system").put("content", SYSTEM_PROMPT))
                     .add(mapper.createObjectNode().put("role", "user").put("content", mapper.writeValueAsString(input))));
             request.put("store", false);
+            // Some models reject temperature, so it is sent only when llm.temperature is set.
+            if (!temperature.isBlank()) request.put("temperature", Double.parseDouble(temperature));
             request.set("text", mapper.readTree(OUTPUT_SCHEMA));
 
             JsonNode response = client.post().uri("/responses").contentType(MediaType.APPLICATION_JSON)
@@ -78,9 +84,11 @@ public class IntentExtractor {
     private static CommandIntent parseCommand(JsonNode node) {
         List<String> searchTerms = new java.util.ArrayList<>();
         node.path("search_terms").forEach(term -> searchTerms.add(term.asText()));
+        List<String> excludeTerms = new java.util.ArrayList<>();
+        node.path("exclude_terms").forEach(term -> excludeTerms.add(term.asText()));
         List<String> labels = new java.util.ArrayList<>();
         node.path("labels").forEach(label -> labels.add(label.asText()));
-        return new CommandIntent(intentType(node.path("intent").asText()), searchTerms,
+        return new CommandIntent(intentType(node.path("intent").asText()), searchTerms, excludeTerms,
                 recipientType(node.path("recipient_type").asText()), node.path("scope").asText(),
                 node.path("text").isNull() ? null : node.path("text").asText(), labels,
                 node.path("field").isNull() ? null : node.path("field").asText(),
@@ -128,16 +136,7 @@ public class IntentExtractor {
             STEP 2: For each command, fill only fields belonging to that intent. Set every other field to null, [] or its neutral value.
 
             SEARCH_RECIPIENTS rules:
-            - Put the searchable words in search_terms: names, titles, roles, locations, departments, organizations, groups, categories, identifiers, codes.
-            - Do not rely on any predefined domain, vocabulary, or list of known terms.
-            - Preserve the user's original wording, spelling, abbreviations, and identifiers.
-            - Extract each independent term or phrase as a separate item. Keep multiword names or identifiers together only when they form one name.
-            - Do not extract operational words such as "select", "find", "show", "please" unless they are themselves search values.
-            - Do not invent terms, expand abbreviations, translate, or infer values.
-            - Do not discard an unfamiliar word just because you do not know what it means.
-            - recipient_type: MEMBERS for individuals, GROUPS for collectives, BOTH when both are requested or all matching options are requested, AUTO when unclear. Never use it to decide what is searchable.
-            - scope: ALL only if the user explicitly says all, every, or each. Otherwise SOME or UNSPECIFIED.
-
+            %s
             SET_MESSAGE, APPEND_MESSAGE, SET_SUBJECT rules:
             - Put the dictated content in "text", copied exactly as the user said it, after removing only the command phrase ("write a message", "subject is", etc.).
             - Do not rephrase, correct, translate, shorten, expand, or improve the text.
@@ -161,7 +160,7 @@ public class IntentExtractor {
             "Find Srikanth" -> intent SEARCH_RECIPIENTS, search_terms ["Srikanth"]
             "Show accounts team in Hyderabad" -> intent SEARCH_RECIPIENTS, search_terms ["accounts","team","Hyderabad"]
             "Search ABC-123" -> intent SEARCH_RECIPIENTS, search_terms ["ABC-123"]
-            "Select all groups in Nalgonda" -> intent SEARCH_RECIPIENTS, search_terms ["groups","Nalgonda"], recipient_type GROUPS, scope ALL
+            "Select all groups in Nalgonda" -> intent SEARCH_RECIPIENTS, search_terms ["Nalgonda"], recipient_type GROUPS, scope ALL
             "Write a message hi everyone, meeting at five" -> intent SET_MESSAGE, text "hi everyone, meeting at five"
             "Also add please confirm" (form message not empty) -> intent APPEND_MESSAGE, text "please confirm"
             "Subject is monthly review" -> intent SET_SUBJECT, text "monthly review"
@@ -170,9 +169,10 @@ public class IntentExtractor {
             "Clear the subject" -> intent CLEAR_FIELD, field SUBJECT
             "Send it" -> intent SEND
             "What's the weather" -> intent UNKNOWN, confidence 0.9
-            """;
+            "All SHOs in Cyberabad except traffic" -> intent SEARCH_RECIPIENTS, search_terms ["SHOs","Cyberabad"], exclude_terms ["traffic"], scope ALL
+            """.formatted(OpenAiIntentParser.SEARCH_RULES);
 
     private static final String OUTPUT_SCHEMA = """
-            {"format":{"type":"json_schema","name":"voice_command_plan","strict":true,"schema":{"type":"object","additionalProperties":false,"properties":{"commands":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"intent":{"type":"string","enum":["SEARCH_RECIPIENTS","SET_MESSAGE","APPEND_MESSAGE","SET_SUBJECT","ADD_LABEL","REMOVE_LABEL","CLEAR_FIELD","SEND","UNKNOWN"]},"search_terms":{"type":"array","items":{"type":"string"}},"recipient_type":{"type":"string","enum":["MEMBERS","GROUPS","BOTH","AUTO"]},"scope":{"type":"string","enum":["ALL","SOME","UNSPECIFIED"]},"text":{"type":["string","null"]},"labels":{"type":"array","items":{"type":"string"}},"field":{"type":["string","null"],"enum":["SUBJECT","MESSAGE","LABELS","RECIPIENTS",null]},"confidence":{"type":"number"}},"required":["intent","search_terms","recipient_type","scope","text","labels","field","confidence"]}}},"required":["commands"]}}}
+            {"format":{"type":"json_schema","name":"voice_command_plan","strict":true,"schema":{"type":"object","additionalProperties":false,"properties":{"commands":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"intent":{"type":"string","enum":["SEARCH_RECIPIENTS","SET_MESSAGE","APPEND_MESSAGE","SET_SUBJECT","ADD_LABEL","REMOVE_LABEL","CLEAR_FIELD","SEND","UNKNOWN"]},"search_terms":{"type":"array","items":{"type":"string"}},"exclude_terms":{"type":"array","items":{"type":"string"}},"recipient_type":{"type":"string","enum":["MEMBERS","GROUPS","BOTH","AUTO"]},"scope":{"type":"string","enum":["ALL","SOME","UNSPECIFIED"]},"text":{"type":["string","null"]},"labels":{"type":"array","items":{"type":"string"}},"field":{"type":["string","null"],"enum":["SUBJECT","MESSAGE","LABELS","RECIPIENTS",null]},"confidence":{"type":"number"}},"required":["intent","search_terms","exclude_terms","recipient_type","scope","text","labels","field","confidence"]}}},"required":["commands"]}}}
             """;
 }

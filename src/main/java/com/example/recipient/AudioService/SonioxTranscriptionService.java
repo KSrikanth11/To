@@ -117,8 +117,8 @@ public class SonioxTranscriptionService {
                         throw new SonioxException("Speech-to-text provider did not return an English transcript");
                     }
                     deleteTranscriptionQuietly(id);
-                    log.info("soniox.transcription.complete transcription_id={} english_text=\"{}\"",
-                            id, text);
+                    log.info("soniox.transcription.complete transcription_id={} chars={}",
+                            id, text.length());
                     return new Transcript(id, text);
                 }
                 if ("error".equalsIgnoreCase(state) || "failed".equalsIgnoreCase(state)) {
@@ -161,8 +161,8 @@ public class SonioxTranscriptionService {
                 else if ("original".equalsIgnoreCase(status) || "none".equalsIgnoreCase(status)) original.append(tokenText);
             }
         }
-        log.info("soniox.transcript.tokens original_text=\"{}\" translated_text=\"{}\" tokens={}",
-                original, translated, tokens);
+        log.info("soniox.transcript.tokens original_chars={} translated_chars={} tokens={}",
+                original.length(), translated.length(), tokens.size());
     }
 
     private void deleteFileQuietly(String fileId) {

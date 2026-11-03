@@ -85,39 +85,9 @@ public class RecipientSearchIndex {
                 || counts.path("subgroups").asInt(-1) != subgroups.size()
                 || counts.path("records").asInt(-1) != members.size() + subgroups.size())
             throw new IllegalArgumentException("Recipient index counts do not match its records");
-        Map<String, List<String>> aliases = parseAliases(root.path("verified_or_strongly_supported_aliases"));
-        return new Snapshot(List.copyOf(members), List.copyOf(subgroups), aliases,
-                makeInvertedIndex(members), makeInvertedIndex(subgroups), Instant.now());
-    }
-
-    private static Map<String, List<String>> parseAliases(JsonNode aliasesNode) {
-        if (!aliasesNode.isObject()) throw new IllegalArgumentException("Verified aliases must be an object");
-        Map<String, List<String>> aliases = new LinkedHashMap<>();
-        aliasesNode.fields().forEachRemaining(entry -> {
-            if (!entry.getValue().isArray()) throw new IllegalArgumentException("Alias values must be arrays");
-            List<String> values = new ArrayList<>();
-            values.add(entry.getKey());
-            entry.getValue().forEach(value -> {
-                if (!value.isTextual() || value.asText().isBlank()) throw new IllegalArgumentException("Aliases must be non-empty strings");
-                values.add(value.asText());
-            });
-            aliases.put(entry.getKey(), List.copyOf(values.stream().distinct().toList()));
-        });
-        return Collections.unmodifiableMap(aliases);
-    }
-
-    private static Map<String, List<RecipientIndexRecord>> makeInvertedIndex(List<RecipientIndexRecord> records) {
-        Map<String, List<RecipientIndexRecord>> mutable = new HashMap<>();
-        for (RecipientIndexRecord record : records) {
-            Set<String> tokens = new LinkedHashSet<>();
-            record.tokens().forEach(token -> tokens.addAll(AliasService.tokens(token)));
-            record.source_tokens().forEach(token -> tokens.addAll(AliasService.tokens(token)));
-            tokens.addAll(AliasService.tokens(record.search_text()));
-            for (String token : tokens) mutable.computeIfAbsent(token, ignored -> new ArrayList<>()).add(record);
-        }
-        Map<String, List<RecipientIndexRecord>> immutable = new HashMap<>();
-        mutable.forEach((token, rows) -> immutable.put(token, List.copyOf(rows)));
-        return Collections.unmodifiableMap(immutable);
+        if (!root.path("verified_or_strongly_supported_aliases").isObject())
+            throw new IllegalArgumentException("Verified aliases must be an object");
+        return new Snapshot(List.copyOf(members), List.copyOf(subgroups), Instant.now());
     }
 
     private static String requiredText(JsonNode node, String field) {
@@ -144,9 +114,6 @@ public class RecipientSearchIndex {
     }
 
     public record Snapshot(List<RecipientIndexRecord> members, List<RecipientIndexRecord> subgroups,
-                           Map<String, List<String>> verifiedAliases,
-                           Map<String, List<RecipientIndexRecord>> memberByToken,
-                           Map<String, List<RecipientIndexRecord>> subgroupByToken,
                            Instant loadedAt) { }
     public record IndexStatus(int member_count, int subgroup_count, Instant loaded_at) { }
 }

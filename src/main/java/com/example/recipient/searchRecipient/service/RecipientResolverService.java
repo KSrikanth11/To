@@ -2,197 +2,134 @@ package com.example.recipient.searchRecipient.service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.example.recipient.searchRecipient.RecipientMysqlRepository;
 import com.example.recipient.searchRecipient.model.Intent;
 import com.example.recipient.searchRecipient.model.MemberMatch;
-import com.example.recipient.searchRecipient.model.RecipientIndexRecord;
+import com.example.recipient.searchRecipient.model.ParsedRecipient;
+import com.example.recipient.searchRecipient.model.RecipientQuery;
 import com.example.recipient.searchRecipient.model.ResolveRecipientRequest;
 import com.example.recipient.searchRecipient.model.ResolveRecipientResponse;
+import com.example.recipient.searchRecipient.model.ResolveRecipientResponse.Interpretation;
 import com.example.recipient.searchRecipient.model.SubgroupMatch;
 
 @Service
 public class RecipientResolverService {
     private static final Logger log = LoggerFactory.getLogger(RecipientResolverService.class);
+    private static final Comparator<MemberMatch> MEMBER_ORDER = Comparator
+            .comparing((MemberMatch m) -> !RecipientMatcher.CONFIRMED.equals(m.status()))
+            .thenComparing(Comparator.comparingDouble(MemberMatch::score).reversed())
+            .thenComparing(MemberMatch::list_username);
+    private static final Comparator<SubgroupMatch> SUBGROUP_ORDER = Comparator
+            .comparing((SubgroupMatch m) -> !RecipientMatcher.CONFIRMED.equals(m.status()))
+            .thenComparing(Comparator.comparingDouble(SubgroupMatch::score).reversed())
+            .thenComparing(SubgroupMatch::list_subgroup_name);
+
     private final IntentParser parser;
-    private final RecipientSearchIndex directIndex;
-    private final ObjectProvider<RecipientSearchIndex> indexProvider;
-    private final RecipientMysqlRepository mysqlRepository;
-    private final MatchingService matching;
+    private final RecipientDirectory directory;
     private final int maxResults;
-    private final String source;
 
     @Autowired
-    public RecipientResolverService(IntentParser parser,
-                                    ObjectProvider<RecipientSearchIndex> indexProvider,
-                                    ObjectProvider<RecipientMysqlRepository> mysqlRepositoryProvider,
-                                    MatchingService matching,
-                                    @Value("${resolver.max-results:200}") int maxResults,
-                                    @Value("${resolver.source:index}") String source) {
+    public RecipientResolverService(IntentParser parser, RecipientDirectory directory,
+                                    @Value("${resolver.max-results:200}") int maxResults) {
         this.parser = parser;
-        this.directIndex = null;
-        this.indexProvider = indexProvider;
-        this.mysqlRepository = mysqlRepositoryProvider.getIfAvailable();
-        this.matching = matching;
+        this.directory = directory;
         this.maxResults = maxResults;
-        this.source = source.trim().toLowerCase(Locale.ROOT);
-    }
-
-    /** Retained for direct construction in resolver unit tests. */
-    public RecipientResolverService(IntentParser parser, RecipientSearchIndex index,
-                                    MatchingService matching, int maxResults) {
-        this.parser = parser;
-        this.directIndex = index;
-        this.indexProvider = null;
-        this.mysqlRepository = null;
-        this.matching = matching;
-        this.maxResults = maxResults;
-        this.source = "index";
     }
 
     public ResolveRecipientResponse resolve(ResolveRecipientRequest request) {
-        String query = request.query().trim();
-        return resolve(request, parser.parse(query));
+        return resolve(request, parser.parse(request.query().trim()));
     }
 
     public ResolveRecipientResponse resolve(ResolveRecipientRequest request, Intent intent) {
-        String query = request.query().trim();
-
-        log.info("resolve.request original_query=\"{}\" source={} list_id={} limit={} offset={}",
-                query, source, request.listId(), request.effectiveLimit(), request.effectiveOffset());
-
-        log.info("resolve.intent.complete original_query=\"{}\" concepts={} scope={} recipient_type={}",
-                intent.originalQuery(), intent.concepts(), intent.allScope() ? "ALL" : "SOME", intent.recipientType());
-
-
-        if (intent.concepts().isEmpty()) {
-            log.info("resolve.complete reason=no_search_concepts member_matches=0 subgroup_matches=0");
-            return new ResolveRecipientResponse(request.query(), List.of(), List.of(), true, false, null,
-                    intent.recipientType());
+        // The list's own catalog reads the query, so terms mean what they mean for that tenant.
+        RecipientDirectory.View list = directory.snapshot(request.listId());
+        CatalogEngine engine = list.engine();
+        RecipientMatcher matcher = engine.matcher();
+        RecipientQuery interpreted = engine.interpreter().interpret(intent);
+        if (!interpreted.hasFilters() && interpreted.exactKey().isEmpty()) {
+            log.info("resolve.complete list_id={} reason=no_search_filters", list.listId());
+            return new ResolveRecipientResponse(request.query(), List.of(), List.of(), true,
+                    "Say who should receive this: a designation, a location, a unit, or a name.",
+                    false, null, interpreted.recipientType(), 0, 0, Interpretation.empty());
         }
 
-        List<MemberMatch> memberMatches = new ArrayList<>();
-        List<SubgroupMatch> subgroupMatches = new ArrayList<>();
+        RecipientQuery query = matcher.prepare(interpreted, list.words());
 
-        if ("mysql".equals(source)) {
-
-            if (mysqlRepository == null) throw new IllegalStateException("MySQL source is selected but its repository is unavailable");
-            RecipientMysqlRepository.ScanResult memberScan = wantsMembers(intent)
-                    ? mysqlRepository.searchMembers(intent, Long.valueOf(173), record -> addMemberMatch(record, intent, memberMatches))
-                    : new RecipientMysqlRepository.ScanResult(0, false);
-            RecipientMysqlRepository.ScanResult subgroupScan = wantsGroups(intent)
-                    ? mysqlRepository.searchSubgroups(intent, Long.valueOf(173), record -> addSubgroupMatch(record, intent, subgroupMatches))
-                    : new RecipientMysqlRepository.ScanResult(0, false);
-
-
-            log.info("resolve.mysql.search.complete member_rows={} member_full_scan_fallback={} "
-                            + "subgroup_rows={} subgroup_full_scan_fallback={}",
-                    memberScan.rowsRead(), memberScan.fullScanFallback(),
-                    subgroupScan.rowsRead(), subgroupScan.fullScanFallback());
-
-                    
-        } else {
-            RecipientSearchIndex.Snapshot snapshot = currentIndex().snapshot();
-            log.info("resolve.index.snapshot members={} subgroups={}", snapshot.members().size(), snapshot.subgroups().size());
-            List<RecipientIndexRecord> memberCandidates = wantsMembers(intent)
-                    ? candidates(intent, snapshot.memberByToken(), snapshot.members()) : List.of();
-            List<RecipientIndexRecord> subgroupCandidates = wantsGroups(intent)
-                    ? candidates(intent, snapshot.subgroupByToken(), snapshot.subgroups()) : List.of();
-            log.info("resolve.index.candidates members={} subgroups={}", memberCandidates.size(), subgroupCandidates.size());
-            memberCandidates.forEach(record -> addMemberMatch(record, intent, memberMatches));
-            subgroupCandidates.forEach(record -> addSubgroupMatch(record, intent, subgroupMatches));
+        List<MemberMatch> members = new ArrayList<>();
+        if (query.recipientType() != Intent.RecipientType.GROUPS) {
+            for (ParsedRecipient record : list.memberCandidates(query)) {
+                RecipientMatcher.Ranked rank = matcher.match(record, query);
+                if (rank != null) members.add(new MemberMatch(record.id(), record.name(), rank.status(), rank.type(),
+                        rank.terms(), rank.reason(), rank.score()));
+            }
         }
-
-
-        System.out.println("Member matches: " + memberMatches.size());
-        memberMatches.sort(Comparator.comparingDouble(MemberMatch::score).reversed().thenComparingLong(MemberMatch::id));
-        subgroupMatches.sort(Comparator.comparingDouble(SubgroupMatch::score).reversed().thenComparingLong(SubgroupMatch::id));
+        List<SubgroupMatch> subgroups = new ArrayList<>();
+        if (query.recipientType() != Intent.RecipientType.MEMBERS) {
+            for (ParsedRecipient record : list.subgroupCandidates(query)) {
+                RecipientMatcher.Ranked rank = matcher.match(record, query);
+                if (rank != null) subgroups.add(new SubgroupMatch(record.id(), record.name(), record.description(),
+                        rank.status(), rank.type(), rank.terms(), rank.reason(), rank.score()));
+            }
+        }
+        members.sort(MEMBER_ORDER);
+        subgroups.sort(SUBGROUP_ORDER);
 
         int limit = Math.min(request.effectiveLimit(), maxResults);
         int offset = request.effectiveOffset();
+        boolean more = members.size() > offset + limit || subgroups.size() > offset + limit;
+        long confirmed = members.stream().filter(m -> RecipientMatcher.CONFIRMED.equals(m.status())).count()
+                + subgroups.stream().filter(m -> RecipientMatcher.CONFIRMED.equals(m.status())).count();
+        String clarification = clarification(query, confirmed, members.size() + subgroups.size());
 
+        log.info("resolve.complete list_id={} designations={} locations={} keywords={} unresolved={} "
+                        + "member_matches={} subgroup_matches={} confirmed={} has_more={}",
+                list.listId(), query.designations().size(), query.locations().size(), query.keywords().size(),
+                query.unresolved().size(), members.size(), subgroups.size(), confirmed, more);
 
-        boolean more = memberMatches.size() > offset + limit || subgroupMatches.size() > offset + limit;
-        List<MemberMatch> memberPage = page(memberMatches, offset, limit);
-        List<SubgroupMatch> subgroupPage = page(subgroupMatches, offset, limit);
-        boolean ambiguity = memberMatches.isEmpty() && subgroupMatches.isEmpty()
-                || memberMatches.stream().anyMatch(m -> "POSSIBLE_MATCH".equals(m.match_type()))
-                || subgroupMatches.stream().anyMatch(m -> "POSSIBLE_MATCH".equals(m.match_type()))
-                || subgroupMatches.size() > 1 && subgroupMatches.get(0).score() - subgroupMatches.get(1).score() <= 0.08;
-        double topMemberScore = memberMatches.isEmpty() ? 0.0 : memberMatches.get(0).score();
-        double topSubgroupScore = subgroupMatches.isEmpty() ? 0.0 : subgroupMatches.get(0).score();
-
-
-        log.info("resolve.ranking.complete member_matches={} top_member_score={} subgroup_matches={} top_subgroup_score={} needs_clarification={} has_more={}",
-                memberMatches.size(), topMemberScore, subgroupMatches.size(), topSubgroupScore, ambiguity, more);
-        log.info("resolve.results members={} subgroups={}", memberPage, subgroupPage);
-
-        return new ResolveRecipientResponse(request.query(), memberPage, subgroupPage, ambiguity, more,
-                more ? offset + limit : null, intent.recipientType());
+        return new ResolveRecipientResponse(request.query(), page(members, offset, limit), page(subgroups, offset, limit),
+                clarification != null, clarification, more, more ? offset + limit : null, query.recipientType(),
+                members.size(), subgroups.size(), interpretation(query, engine.catalog()));
     }
 
-    public RecipientSearchIndex.IndexStatus reloadSource() {
-        if ("mysql".equals(source)) {
-            if (mysqlRepository == null) throw new IllegalStateException("MySQL source is selected but its repository is unavailable");
-            return mysqlRepository.currentStatus();
+    public RecipientDirectory.Status reloadSource() { return directory.reload(); }
+
+    private static String clarification(RecipientQuery query, long confirmed, int total) {
+        if (!query.unresolved().isEmpty()) {
+            return query.unresolved().stream().map(term -> term.ambiguous()
+                    ? "'" + term.term() + "' can mean " + String.join(" or ", term.suggestions()) + ". Which one did you mean?"
+                    : term.suggestions().isEmpty()
+                    ? "I could not find anyone matching '" + term.term() + "'."
+                    : "I could not find '" + term.term() + "'. Did you mean " + String.join(" or ", term.suggestions()) + "?")
+                    .collect(Collectors.joining(" "));
         }
-        return currentIndex().reload();
+        if (total == 0) return "No recipients match all of the requested filters.";
+        if (confirmed == 0) return "Only possible matches were found. Please confirm them before sending.";
+        return null;
     }
 
-    private RecipientSearchIndex currentIndex() {
-        if (directIndex != null) return directIndex;
-        RecipientSearchIndex index = indexProvider == null ? null : indexProvider.getIfAvailable();
-        if (index == null) throw new IllegalStateException("JSON index source is selected but its index is unavailable");
-        return index;
-    }
-
-    private void addMemberMatch(RecipientIndexRecord record, Intent intent, List<MemberMatch> matches) {
-        MatchingService.Ranked rank = matching.rank(record, intent);
-        if (rank != null) matches.add(new MemberMatch(record.id(), record.username(), rank.type(),
-                rank.terms(), rank.reason(), rank.score()));
-    }
-
-    private void addSubgroupMatch(RecipientIndexRecord record, Intent intent, List<SubgroupMatch> matches) {
-        MatchingService.Ranked rank = matching.rank(record, intent);
-        if (rank != null) matches.add(new SubgroupMatch(record.id(), record.name(), record.description(),
-                rank.type(), rank.terms(), rank.reason(), rank.score()));
-    }
-
-    private static boolean wantsMembers(Intent intent) {
-        return intent.recipientType() != Intent.RecipientType.GROUPS;
-    }
-
-    private static boolean wantsGroups(Intent intent) {
-        return intent.recipientType() != Intent.RecipientType.MEMBERS;
-    }
-
-    private static List<RecipientIndexRecord> candidates(Intent intent,
-            Map<String, List<RecipientIndexRecord>> byToken, List<RecipientIndexRecord> allRecords) {
-        Map<Long, RecipientIndexRecord> found = new LinkedHashMap<>();
-        for (Intent.Concept concept : intent.concepts()) {
-            for (String alternative : concept.alternatives()) {
-                for (String token : AliasService.tokens(alternative)) {
-                    for (RecipientIndexRecord row : byToken.getOrDefault(token, List.of())) found.putIfAbsent(row.id(), row);
-                }
-            }
-        }
-        // Small, in-memory corpus fallback enables local fuzzy ranking when no token hit exists.
-        return found.isEmpty() ? allRecords : List.copyOf(found.values());
+    private static Interpretation interpretation(RecipientQuery query, RecipientCatalog catalog) {
+        List<String> excluded = new ArrayList<>();
+        query.excludedDesignations().forEach(code -> excluded.add(catalog.label(code)));
+        excluded.addAll(query.excludedLocations());
+        excluded.addAll(query.excludedKeywords());
+        return new Interpretation(
+                query.designations().stream().map(catalog::label).sorted().toList(),
+                query.locations().stream().sorted().toList(),
+                query.keywords().stream().map(RecipientQuery.Keyword::term).toList(),
+                List.copyOf(excluded),
+                query.unresolved().stream().map(RecipientQuery.UnresolvedTerm::term).toList());
     }
 
     private static <T> List<T> page(List<T> values, int offset, int limit) {
         if (offset >= values.size()) return List.of();
-        return values.subList(offset, Math.min(values.size(), offset + limit));
+        return List.copyOf(values.subList(offset, Math.min(values.size(), offset + limit)));
     }
 }

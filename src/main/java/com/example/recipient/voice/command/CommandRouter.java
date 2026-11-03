@@ -59,20 +59,17 @@ public class CommandRouter {
 
             switch (command.intent()) {
                 case SEARCH_RECIPIENTS -> {
-                    
-                    System.out.println("Command details ====> " + command.toString());
                     recipientResolution = searchRecipients.resolve(transcript, command);
                     if (recipientResolution == null) {
-                        actions.add(searchRecipients.apply(transcript, command));
-                    } else {
-                        List<Object> candidates = new ArrayList<>();
-                        candidates.addAll(recipientResolution.member_matches());
-                        candidates.addAll(recipientResolution.subgroup_matches());
-                        actions.add(UiAction.setRecipients(candidates));
-                        if ("ALL".equals(command.scope()) && !recipientResolution.needs_clarification()
-                                && !recipientResolution.has_more()) {
-                            form = new ComposeFormState(form.subject(), form.message(), form.labels(), candidates.size());
-                        }
+                        actions.add(UiAction.clarifyRecipients("Recipients could not be searched. Please try again."));
+                        break;
+                    }
+                    SearchRecipientsAction.Selection selection = searchRecipients.select(recipientResolution);
+                    if (!selection.selected().isEmpty()) actions.add(UiAction.setRecipients(selection.selected()));
+                    if (!selection.suggested().isEmpty()) actions.add(UiAction.suggestRecipients(selection.suggested()));
+                    if (selection.clarification() != null) actions.add(UiAction.clarifyRecipients(selection.clarification()));
+                    if ("ALL".equals(command.scope()) && selection.clarification() == null && !selection.selected().isEmpty()) {
+                        form = new ComposeFormState(form.subject(), form.message(), form.labels(), selection.selected().size());
                     }
                 }
                 case SET_MESSAGE -> {
@@ -112,8 +109,8 @@ public class CommandRouter {
             }
         }
 
-        if (hadLowConfidenceCommand) actions.add(UiAction.notUnderstood("Some part of the command was unclear"));
         if (actions.isEmpty()) actions.add(UiAction.notUnderstood("Please repeat"));
+        else if (hadLowConfidenceCommand) actions.add(UiAction.notUnderstood("Some part of the command was unclear"));
         return new VoiceCommandResponse(transcript, form, recipientResolution, List.copyOf(actions),
                 context.append(transcript));
     }

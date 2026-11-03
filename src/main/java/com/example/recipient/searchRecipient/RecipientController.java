@@ -22,8 +22,8 @@ import com.example.recipient.searchRecipient.model.ResolveAudioResponse;
 import com.example.recipient.searchRecipient.model.ResolveRecipientRequest;
 import com.example.recipient.searchRecipient.model.ResolveRecipientResponse;
 import com.example.recipient.searchRecipient.service.RecipientResolverService;
+import com.example.recipient.searchRecipient.service.RecipientDirectory;
 import com.example.recipient.searchRecipient.service.RecipientSearchIndex;
-import com.example.recipient.searchRecipient.service.RecipientSearchIndex.IndexStatus;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -75,8 +75,8 @@ public class RecipientController {
             log.warn("audio.transcript.rejected chars={} reason=invalid_length", transcript.text().length());
             throw new TranscriptRejectedException("Audio transcript must contain 1 to 500 characters");
         }
-        log.info("audio.transcript.ready transcription_id={} english_query=\"{}\"",
-                transcript.transcriptionId(), transcript.text());
+        log.info("audio.transcript.ready transcription_id={} chars={}",
+                transcript.transcriptionId(), transcript.text().length());
         ResolveRecipientRequest textRequest = new ResolveRecipientRequest(
                 transcript.text(), limit, offset, listId);
         return new ResolveAudioResponse(transcript.text(), transcript.transcriptionId(), resolver.resolve(textRequest));
@@ -88,5 +88,5 @@ public class RecipientController {
     }
 
     @PostMapping("/index/reload")
-    public IndexStatus reloadIndex() { return resolver.reloadSource(); }
+    public RecipientDirectory.Status reloadIndex() { return resolver.reloadSource(); }
 }

@@ -20,6 +20,16 @@ public record UiAction(String type, String message, String field, String value, 
         return new UiAction("SET_RECIPIENTS", null, null, null, null, candidates);
     }
 
+    /** Possible matches and alternative groups; show them unchecked, never select automatically. */
+    public static UiAction suggestRecipients(List<Object> candidates) {
+        return new UiAction("SUGGEST_RECIPIENTS", null, null, null, null, candidates);
+    }
+
+    /** Ask the user to settle an unclear recipient request before anything is selected. */
+    public static UiAction clarifyRecipients(String message) {
+        return new UiAction("CLARIFY_RECIPIENTS", message, "RECIPIENTS", null, null, null);
+    }
+
     public static UiAction updateLabels(String operation, String label) {
         return new UiAction("UPDATE_LABELS", null, "LABELS", label, operation, null);
     }

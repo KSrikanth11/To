@@ -66,7 +66,7 @@ public class VoiceCommandController {
             log.warn("voice.audio.transcript.rejected chars={} reason=invalid_length", result.text().length());
             throw new TranscriptRejectedException("Audio transcript is empty or invalid");
         }
-        log.info("voice.audio.transcript.ready Text==>{}", result.text());
+        log.info("voice.audio.transcript.ready chars={}", result.text().length());
         return routeTranscript(result.text(), form, context);
     }
 
