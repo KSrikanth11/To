@@ -34,10 +34,14 @@ public class SonioxTranscriptionService {
                                       @Value("${soniox.api-key:}") String apiKey,
                                       @Value("${soniox.model:stt-async-v5}") String model,
                                       @Value("${soniox.max-wait-seconds:90}") int maxWaitSeconds,
-                                      @Value("${soniox.max-file-size-bytes:25000000}") long maxFileSizeBytes) {
-        HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
+                                      @Value("${soniox.max-file-size-bytes:25000000}") long maxFileSizeBytes,
+                                      @Value("${soniox.connect-timeout-seconds:10}") int connectTimeoutSeconds,
+                                      @Value("${soniox.read-timeout-seconds:30}") int readTimeoutSeconds) {
+        // A 3 s connect timeout failed on slower networks (TLS to the US endpoint can take over a second).
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(Math.max(1, connectTimeoutSeconds))).build();
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
-        requestFactory.setReadTimeout(Duration.ofSeconds(10));
+        requestFactory.setReadTimeout(Duration.ofSeconds(Math.max(1, readTimeoutSeconds)));
         this.client = builder.requestFactory(requestFactory).baseUrl("https://api.soniox.com/v1").build();
         this.apiKey = apiKey;
         this.model = model;
@@ -68,8 +72,7 @@ public class SonioxTranscriptionService {
             filePart.add("file", new ByteArrayResource(audio) {
                 @Override public String getFilename() { return filename; }
             });
-            JsonNode uploaded = client.post().uri("/files").contentType(MediaType.MULTIPART_FORM_DATA)
-                    .header("Authorization", "Bearer " + apiKey).body(filePart).retrieve().body(JsonNode.class);
+            JsonNode uploaded = upload(filePart);
             uploadedFileId = uploaded.path("id").asText("");
             if (uploadedFileId.isBlank()) {
                 uploadedFileId = null;
@@ -116,10 +119,12 @@ public class SonioxTranscriptionService {
                                 transcript.path("tokens").isArray() ? transcript.path("tokens").size() : 0);
                         throw new SonioxException("Speech-to-text provider did not return an English transcript");
                     }
+                    String spoken = spokenTranscript(transcript);
+                    String language = dominantLanguage(transcript);
                     deleteTranscriptionQuietly(id);
-                    log.info("soniox.transcription.complete transcription_id={} chars={}",
-                            id, text.length());
-                    return new Transcript(id, text);
+                    log.info("soniox.transcription.complete transcription_id={} english_chars={} spoken_chars={} language={}",
+                            id, text.length(), spoken.length(), language);
+                    return new Transcript(id, text, spoken, language);
                 }
                 if ("error".equalsIgnoreCase(state) || "failed".equalsIgnoreCase(state)) {
                     safeToDeleteFile = true;
@@ -142,11 +147,40 @@ public class SonioxTranscriptionService {
                     ex.getClass().getSimpleName(), ex.getStatusCode().value());
             throw new SonioxException("Speech-to-text provider is temporarily unavailable", ex);
         } catch (RestClientException ex) {
-            log.warn("soniox.provider.error stage={} error_type={}", providerStage, ex.getClass().getSimpleName());
+            log.warn("soniox.provider.error stage={} error_type={} cause_type={}", providerStage,
+                    ex.getClass().getSimpleName(), rootCause(ex).getClass().getSimpleName());
             throw new SonioxException("Speech-to-text provider is temporarily unavailable", ex);
         } finally {
             if (uploadedFileId != null && safeToDeleteFile) deleteFileQuietly(uploadedFileId);
         }
+    }
+
+    /**
+     * Uploads the audio, retrying once when the connection could not be opened. Only connection failures are
+     * retried: then nothing reached Soniox, so a retry cannot create a duplicate file.
+     */
+    private JsonNode upload(MultiValueMap<String, Object> filePart) {
+        for (int attempt = 1; ; attempt++) {
+            try {
+                return client.post().uri("/files").contentType(MediaType.MULTIPART_FORM_DATA)
+                        .header("Authorization", "Bearer " + apiKey).body(filePart).retrieve().body(JsonNode.class);
+            } catch (org.springframework.web.client.ResourceAccessException ex) {
+                if (attempt >= 2 || !connectionNotOpened(ex)) throw ex;
+                log.warn("soniox.upload.retry attempt={} error_type={}", attempt, rootCause(ex).getClass().getSimpleName());
+            }
+        }
+    }
+
+    static boolean connectionNotOpened(Throwable ex) {
+        Throwable cause = rootCause(ex);
+        return cause instanceof java.net.http.HttpConnectTimeoutException || cause instanceof java.net.ConnectException
+                || cause instanceof java.net.UnknownHostException;
+    }
+
+    private static Throwable rootCause(Throwable ex) {
+        Throwable cause = ex;
+        while (cause.getCause() != null && cause.getCause() != cause) cause = cause.getCause();
+        return cause;
     }
 
     private static void logTranscriptTokens(JsonNode transcript) {
@@ -213,6 +247,33 @@ public class SonioxTranscriptionService {
         return "";
     }
 
+    /** The words as spoken, in the speaker's own language: every token that is not a translation. */
+    static String spokenTranscript(JsonNode transcript) {
+        JsonNode tokens = transcript.path("tokens");
+        if (!tokens.isArray()) return "";
+        StringBuilder spoken = new StringBuilder();
+        for (JsonNode token : tokens) {
+            if (!"translation".equalsIgnoreCase(token.path("translation_status").asText("")))
+                spoken.append(token.path("text").asText(""));
+        }
+        return spoken.toString().trim();
+    }
+
+    /** Language that covers the most spoken characters, as identified by Soniox; "unknown" if none. */
+    static String dominantLanguage(JsonNode transcript) {
+        Map<String, Integer> characters = new LinkedHashMap<>();
+        JsonNode tokens = transcript.path("tokens");
+        if (tokens.isArray()) {
+            for (JsonNode token : tokens) {
+                if ("translation".equalsIgnoreCase(token.path("translation_status").asText(""))) continue;
+                String language = token.path("language").asText("").trim().toLowerCase(java.util.Locale.ROOT);
+                if (!language.isEmpty()) characters.merge(language, token.path("text").asText("").length(), Integer::sum);
+            }
+        }
+        return characters.entrySet().stream().max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey).orElse("unknown");
+    }
+
     private static String safeFilename(String original) {
         if (original == null || original.isBlank()) return "audio.bin";
         String name = original.replace('\\', '/');
@@ -220,5 +281,12 @@ public class SonioxTranscriptionService {
         return name.isBlank() ? "audio.bin" : name.substring(0, Math.min(name.length(), 128));
     }
 
-    public record Transcript(String transcriptionId, String text) { }
+    /**
+     * @param text         English transcript (Soniox translation, or the speech itself when it was English)
+     * @param originalText the words as spoken, before translation
+     * @param language     language Soniox identified for most of the speech
+     */
+    public record Transcript(String transcriptionId, String text, String originalText, String language) {
+        public Transcript(String transcriptionId, String text) { this(transcriptionId, text, "", "unknown"); }
+    }
 }

@@ -21,6 +21,7 @@ import com.example.recipient.AudioService.TranscriptRejectedException;
 import com.example.recipient.searchRecipient.model.ResolveAudioResponse;
 import com.example.recipient.searchRecipient.model.ResolveRecipientRequest;
 import com.example.recipient.searchRecipient.model.ResolveRecipientResponse;
+import com.example.recipient.searchRecipient.model.SpokenInput;
 import com.example.recipient.searchRecipient.service.RecipientResolverService;
 import com.example.recipient.searchRecipient.service.RecipientDirectory;
 import com.example.recipient.searchRecipient.service.RecipientSearchIndex;
@@ -75,11 +76,14 @@ public class RecipientController {
             log.warn("audio.transcript.rejected chars={} reason=invalid_length", transcript.text().length());
             throw new TranscriptRejectedException("Audio transcript must contain 1 to 500 characters");
         }
-        log.info("audio.transcript.ready transcription_id={} chars={}",
-                transcript.transcriptionId(), transcript.text().length());
+        SpokenInput spoken = new SpokenInput(transcript.originalText(), transcript.language());
+        log.info("audio.transcript.ready transcription_id={} english_chars={} spoken_chars={} language={}",
+                transcript.transcriptionId(), transcript.text().length(), spoken.original().length(), spoken.language());
         ResolveRecipientRequest textRequest = new ResolveRecipientRequest(
                 transcript.text(), limit, offset, listId);
-        return new ResolveAudioResponse(transcript.text(), transcript.transcriptionId(), resolver.resolve(textRequest));
+        // The LLM reads the English transcript and the original speech together to get the intent right.
+        return new ResolveAudioResponse(transcript.text(), transcript.transcriptionId(),
+                resolver.resolve(textRequest, spoken), spoken.original(), spoken.language());
     }
 
     /** Retained for direct calls using the previous signature; multipart HTTP requests may include listId. */

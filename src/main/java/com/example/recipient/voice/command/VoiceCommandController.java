@@ -18,6 +18,7 @@ import com.example.recipient.AudioService.AudioFileRejectedException;
 import com.example.recipient.AudioService.SonioxException;
 import com.example.recipient.AudioService.SonioxTranscriptionService;
 import com.example.recipient.AudioService.TranscriptRejectedException;
+import com.example.recipient.searchRecipient.model.SpokenInput;
 import com.example.recipient.voice.command.model.ComposeFormState;
 import com.example.recipient.voice.command.model.VoiceCommandContext;
 import com.example.recipient.voice.command.model.VoiceCommandRequest;
@@ -44,7 +45,7 @@ public class VoiceCommandController {
         return routeTranscript(request.transcript(), request.form(), request.context());
     }
 
-    /** Accept audio, translate it to English, then process it as a normal voice command. */
+    /** Accept audio; Soniox transcribes and translates it, then the LLM reads both texts to extract the command. */
     @PostMapping(value = "/command", consumes = "multipart/form-data")
     public VoiceCommandResponse commandAudio(
             @RequestPart("audio") MultipartFile audio,
@@ -66,8 +67,12 @@ public class VoiceCommandController {
             log.warn("voice.audio.transcript.rejected chars={} reason=invalid_length", result.text().length());
             throw new TranscriptRejectedException("Audio transcript is empty or invalid");
         }
-        log.info("voice.audio.transcript.ready chars={}", result.text().length());
-        return routeTranscript(result.text(), form, context);
+        SpokenInput spoken = new SpokenInput(result.originalText(), result.language());
+        log.info("voice.audio.transcript.ready english_chars={} spoken_chars={} language={}",
+                result.text().length(), spoken.original().length(), spoken.language());
+        // The LLM reads Soniox's English transcript and the original speech together.
+        return router.route(result.text(), form == null ? ComposeFormState.empty() : form, context, spoken)
+                .withSpeech(spoken.original(), spoken.language());
     }
 
     private VoiceCommandResponse routeTranscript(String transcript, ComposeFormState form,

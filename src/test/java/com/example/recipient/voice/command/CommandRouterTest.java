@@ -139,4 +139,22 @@ class CommandRouterTest {
         return new CommandIntent(type, List.of(), List.of(), Intent.RecipientType.MEMBERS,
                 "SOME", "hello", List.of(), null, confidence);
     }
+
+    @Test
+    void spokenCommandGivesTheExtractorTheOriginalSpeechAndReturnsIt() {
+        com.example.recipient.searchRecipient.model.SpokenInput spoken =
+                new com.example.recipient.searchRecipient.model.SpokenInput("నల్గొండ డీఎస్పీలు అందరికీ పంపండి", "te");
+        when(extractor.extractCommands(any(), any(), any(), any())).thenReturn(
+                List.of(search(List.of("DSPs", "Nalgonda"), List.of(), "ALL")));
+
+        VoiceCommandResponse response = router.route("Send to all DSPs in Nalgonda", ComposeFormState.empty(), null, spoken)
+                .withSpeech(spoken.original(), spoken.language());
+
+        verify(extractor).extractCommands(org.mockito.ArgumentMatchers.eq("Send to all DSPs in Nalgonda"), any(), any(),
+                org.mockito.ArgumentMatchers.eq(spoken));
+        assertEquals("SET_RECIPIENTS", response.actions().get(0).type());
+        assertEquals("Send to all DSPs in Nalgonda", response.transcript());
+        assertEquals(spoken.original(), response.originalTranscript());
+        assertEquals("te", response.detectedLanguage());
+    }
 }

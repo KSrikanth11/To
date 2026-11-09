@@ -349,6 +349,67 @@ for abbr, full, category, scope, status in key:
     loc = f"{clean(full)}, {scope}"
     if loc in stations and station_alias_allowed(n, station_code_homes[n], scope):
         add_alias(loc, str(abbr), status == "Confident" and not uncertain(full), "abbreviation key")
+# Location codes learned from the usernames themselves (si-qbp-cyb, hc-nzbtn1, ...). The abbreviation key misses
+# many codes people actually use. A username token becomes an alias of a location when:
+#   * it is not a query word, rank, wing/section code or an alias some other location already owns;
+#   * its letters are an in-order abbreviation of that location's name, starting with the same letter
+#     (qbp -> Quthbullapur, nzbtn -> Nizamabad Town, blnr -> Balanagar) - this keeps unit words such as
+#     "cluesteam" or "controlroom" from becoming places just because every such account sits in one city;
+#   * at least 75% of the decoded members whose username carries the token are in that location
+#     (2+ members for two-letter codes). The most specific qualifying location wins (station > zone > district).
+# It is VERIFIED only when every supporting member is decoded with a verified location; otherwise UNVERIFIED,
+# which can only give SUGGESTED matches.
+NON_LOCATION_CODES = {normalize(str(a)).replace(" ", "") for a, _, category, _, _ in key
+                      if category in ("Wing / Section", "Designation / Post", "Personnel rank")}
+DESIGNATION_CODE = re.compile(r"^(?:" + "|".join(sorted({re.escape(a.replace("<number>", "")) for a in abbr_to_code},
+                                                         key=len, reverse=True)) + r")\d*$")
+
+
+def place_letters(location):
+    name = location.split(",")[0]
+    for suffix in LOCATION_SUFFIXES:          # " PS" stays: bhps -> "Banjara Hills PS"
+        if name.endswith(suffix):
+            name = name[: -len(suffix)]
+            break
+    return re.sub(r"[^a-z]", "", name.lower())
+
+
+def abbreviates(code, location):
+    letters, name = re.sub(r"[^a-z]", "", code), place_letters(location)
+    if len(letters) < 2 or not name or letters[0] != name[0]:
+        return False
+    rest = iter(name)
+    return all(ch in rest for ch in letters)
+
+
+token_members = defaultdict(set)                       # token -> member ids
+token_locations = defaultdict(lambda: defaultdict(list))  # token -> location -> [verified, ...]
+for p in profiles:
+    if p["confidence"] in ("SYSTEM", "PERSONAL"):
+        continue
+    for token in set(re.split(r"[^a-z0-9]+", re.sub(r"@.*", "", p["username"].lower()))):
+        if not token or token.isdigit():
+            continue
+        token_members[token].add(p["member_id"])
+        for kind, loc, ok in p["attrs"]:
+            if kind == "LOCATION":
+                token_locations[token][loc].append(ok)
+
+specificity = lambda loc: 0 if loc in stations else 1 if loc in ZONES else 2
+for token in sorted(token_members):
+    n = normalize(token)
+    if (n in alias_owner or n in QUERY_WORDS or n in DESIGNATION_ALIASES or n in NON_LOCATION_CODES
+            or DESIGNATION_CODE.match(n)):
+        continue
+    members = len(token_members[token])
+    candidates = [(specificity(loc), loc, oks) for loc, oks in token_locations[token].items()
+                  if len(oks) / members >= 0.75 and abbreviates(token, loc) and (len(n) > 2 or len(oks) >= 2)]
+    if not candidates:
+        continue
+    _, loc, oks = min(candidates)
+    add_alias(loc, token, all(oks), f"username code ({len(oks)} of {members} accounts)")
+    review["username_location_codes"].append((token, loc, len(oks), members, "VERIFIED" if all(oks) else "UNVERIFIED"))
+
 for n, owners in sorted(alias_owner.items()):
     if len(owners) > 1:
         review["ambiguous_location_aliases"].append((n, " | ".join(sorted(owners))))
@@ -503,6 +564,7 @@ HEADERS = {
     "values_kept_as_keywords": ["member_id", "username", "values"],
     "ambiguous_location_aliases": ["alias", "locations"],
     "json_dictionary_conflicts": ["alias", "old_json_meaning", "decoded_meaning"],
+    "username_location_codes": ["code", "location", "accounts_in_location", "accounts_with_code", "verification"],
 }
 REVIEW_DIR.mkdir(parents=True, exist_ok=True)
 for name, header in HEADERS.items():

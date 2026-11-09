@@ -32,6 +32,8 @@ public class SearchRecipientsAction {
     public ResolveRecipientResponse resolve(String transcript, CommandIntent command) {
         Intent intent = new Intent(transcript, command.searchTerms(), command.excludeTerms(),
                 "ALL".equals(command.scope()), command.recipientType());
+
+                System.out.println("Resolving recipients with intent: " + intent);
         // Ask for every match at once: auto-selecting only the first page would silently drop recipients.
         return resolver.resolve(new ResolveRecipientRequest(transcript, maxResults, 0, null), intent);
     }

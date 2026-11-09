@@ -28,6 +28,7 @@ import com.example.recipient.searchRecipient.model.MemberMatch;
 import com.example.recipient.searchRecipient.model.RecipientIndexRecord;
 import com.example.recipient.searchRecipient.model.ResolveRecipientRequest;
 import com.example.recipient.searchRecipient.model.ResolveRecipientResponse;
+import com.example.recipient.searchRecipient.model.SpokenInput;
 
 class RecipientResolverServiceTest {
     private RecipientSearchIndex index;
@@ -164,5 +165,59 @@ class RecipientResolverServiceTest {
         assertTrue(response.recipient_resolution().member_matches().stream()
                 .anyMatch(m -> m.matched_terms().containsAll(List.of("Sub-Inspector", "Nalgonda"))));
         verify(soniox).transcribe(any(byte[].class), eq("voice.wav"), eq(List.of("en")));
+    }
+
+    @Test void spokenAudioSendsTheEnglishTranscriptAndTheOriginalSpeechToTheIntentParser() throws Exception {
+        SonioxTranscriptionService soniox = mock(SonioxTranscriptionService.class);
+        String spokenWords = "నల్గొండ లో అందరు ఎస్ఐ లకు పంపండి";
+        when(soniox.transcribe(any(byte[].class), anyString(), any())).thenReturn(
+                new SonioxTranscriptionService.Transcript("transcript-2", "Send to all SIs in Nalgonda", spokenWords, "te"));
+        List<SpokenInput> seen = new java.util.ArrayList<>();
+        IntentParser capturing = new IntentParser() {
+            @Override public Intent parse(String query) { return new DeterministicIntentParser().parse(query); }
+            @Override public Intent parse(String english, SpokenInput spoken) { seen.add(spoken); return parse(english); }
+        };
+        RecipientResolverService speechResolver = new RecipientResolverService(capturing,
+                new IndexRecipientDirectory(index, CatalogEngine.of(TestIndexFactory.catalog())), 200);
+        RecipientController controller = new RecipientController(speechResolver, soniox);
+        MockMultipartFile audio = new MockMultipartFile("audio", "voice.wav", "audio/wav", new byte[]{1, 2, 3});
+
+        var response = controller.resolveAudio(audio, null, 50, 0);
+        assertEquals(List.of(new SpokenInput(spokenWords, "te")), seen);
+        assertEquals("Send to all SIs in Nalgonda", response.transcript());
+        assertEquals(spokenWords, response.original_transcript());
+        assertEquals("te", response.detected_language());
+        assertTrue(response.recipient_resolution().member_matches().stream()
+                .anyMatch(m -> m.matched_terms().containsAll(List.of("Sub-Inspector", "Nalgonda"))));
+    }
+
+    @Test void spokenInputOnlyAddsSomethingWhenItDiffersFromTheEnglish() {
+        assertFalse(new SpokenInput("Send to SIs", "en").addsTo("send to SIs"));
+        assertFalse(new SpokenInput(null, null).addsTo("Send to SIs"));
+        assertTrue(new SpokenInput("SI lu andariki", "te").addsTo("To all SIs"));
+        assertEquals("unknown", new SpokenInput("x", " ").language());
+    }
+
+    @Test void groupSearchWithARankNoGroupCarriesOffersThePlacesGroupsAsSuggestions() {
+        // What the LLM read from "SI-related subgroups from Nalgonda, bring all of that" (Soniox heard "essay").
+        Intent intent = new Intent("SI subgroups from Nalgonda", List.of("SI", "Nalgonda"), true, Intent.RecipientType.GROUPS);
+        var response = resolver.resolve(new ResolveRecipientRequest("SI subgroups from Nalgonda", 200, 0), intent);
+
+        assertTrue(response.member_matches().isEmpty());
+        assertFalse(response.subgroup_matches().isEmpty(), "Nalgonda's groups are offered");
+        assertTrue(response.subgroup_matches().stream().allMatch(g -> RecipientMatcher.SUGGESTED.equals(g.status())),
+                "never auto-selected: no group is named for SIs");
+        assertTrue(response.subgroup_matches().stream().anyMatch(g -> g.list_subgroup_name().equals("ALLSHOs-NLG")));
+        assertTrue(response.needs_clarification());
+        assertTrue(response.clarification().startsWith("No group is named for Sub-Inspector in Nalgonda"),
+                response.clarification());
+    }
+
+    @Test void groupSearchThatMatchesARankKeepsOnlyThoseGroups() {
+        Intent intent = new Intent("CI groups in Nalgonda", List.of("CI", "Nalgonda"), true, Intent.RecipientType.GROUPS);
+        var response = resolver.resolve(new ResolveRecipientRequest("CI groups in Nalgonda", 200, 0), intent);
+        assertTrue(response.subgroup_matches().stream().anyMatch(g -> g.list_subgroup_name().equals("ALLCIs-NLG")));
+        assertTrue(response.subgroup_matches().stream().noneMatch(g -> g.list_subgroup_name().equals("DARHQRS-NLG")),
+                "the place-only fallback is not used when a rank group exists");
     }
 }

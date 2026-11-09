@@ -17,6 +17,7 @@ import com.example.recipient.searchRecipient.model.ParsedRecipient;
 import com.example.recipient.searchRecipient.model.RecipientQuery;
 import com.example.recipient.searchRecipient.model.ResolveRecipientRequest;
 import com.example.recipient.searchRecipient.model.ResolveRecipientResponse;
+import com.example.recipient.searchRecipient.model.SpokenInput;
 import com.example.recipient.searchRecipient.model.ResolveRecipientResponse.Interpretation;
 import com.example.recipient.searchRecipient.model.SubgroupMatch;
 
@@ -46,6 +47,11 @@ public class RecipientResolverService {
 
     public ResolveRecipientResponse resolve(ResolveRecipientRequest request) {
         return resolve(request, parser.parse(request.query().trim()));
+    }
+
+    /** Resolves a spoken request; the intent parser sees both the English transcript and the original speech. */
+    public ResolveRecipientResponse resolve(ResolveRecipientRequest request, SpokenInput spoken) {
+        return resolve(request, parser.parse(request.query().trim(), spoken));
     }
 
     public ResolveRecipientResponse resolve(ResolveRecipientRequest request, Intent intent) {
@@ -79,6 +85,27 @@ public class RecipientResolverService {
                         rank.status(), rank.type(), rank.terms(), rank.reason(), rank.score()));
             }
         }
+        // Groups are named by place far more often than by rank: "SI groups in Nalgonda" can find no group that
+        // names SIs. Rather than an empty answer, offer that place's groups as suggestions (never auto-selected).
+        String placeOnlyNote = null;
+        if (subgroups.isEmpty() && query.recipientType() == Intent.RecipientType.GROUPS && query.unresolved().isEmpty()
+                && !query.designations().isEmpty() && !query.locations().isEmpty()) {
+            RecipientQuery placeOnly = new RecipientQuery(java.util.Set.of(), query.locations(), query.expandedLocations(),
+                    query.keywords(), query.excludedDesignations(), query.excludedLocations(), query.excludedKeywords(),
+                    query.inferred(), query.unresolved(), query.allScope(), query.recipientType(), query.exactKey());
+            String ranks = query.designations().stream().map(engine.catalog()::label).sorted().collect(Collectors.joining(" or "));
+            String places = query.locations().stream().sorted().collect(Collectors.joining(" or "));
+            for (ParsedRecipient record : list.subgroupCandidates(placeOnly)) {
+                RecipientMatcher.Ranked rank = matcher.match(record, placeOnly);
+                if (rank != null) subgroups.add(new SubgroupMatch(record.id(), record.name(), record.description(),
+                        RecipientMatcher.SUGGESTED, rank.type(), rank.terms(),
+                        "No group is named for " + ranks + "; this group covers " + places + ".", rank.score()));
+            }
+            if (!subgroups.isEmpty()) placeOnlyNote = "No group is named for " + ranks + " in " + places
+                    + ". These are the groups for " + places + ": choose the right one, or ask for " + ranks
+                    + " members instead.";
+            log.info("resolve.subgroup_place_fallback list_id={} suggested={}", list.listId(), subgroups.size());
+        }
         members.sort(MEMBER_ORDER);
         subgroups.sort(SUBGROUP_ORDER);
 
@@ -87,7 +114,8 @@ public class RecipientResolverService {
         boolean more = members.size() > offset + limit || subgroups.size() > offset + limit;
         long confirmed = members.stream().filter(m -> RecipientMatcher.CONFIRMED.equals(m.status())).count()
                 + subgroups.stream().filter(m -> RecipientMatcher.CONFIRMED.equals(m.status())).count();
-        String clarification = clarification(query, confirmed, members.size() + subgroups.size());
+        String clarification = placeOnlyNote != null ? placeOnlyNote
+                : clarification(query, confirmed, members.size() + subgroups.size());
 
         log.info("resolve.complete list_id={} designations={} locations={} keywords={} unresolved={} "
                         + "member_matches={} subgroup_matches={} confirmed={} has_more={}",

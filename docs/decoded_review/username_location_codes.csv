@@ -1,0 +1,36 @@
+code,location,accounts_in_location,accounts_with_code,verification
+adbl,"Adibatla, Hyderabad City Police",2,2,VERIFIED
+atpr,"Attapur, Hyderabad City Police",3,3,VERIFIED
+bdlg,"Bandlaguda, Hyderabad City Police",3,3,VERIFIED
+bdp,"Bahadurpura, Hyderabad City Police",3,3,VERIFIED
+bhgr,"Bhongir, Yadadri Bhuvanagiri District",1,1,VERIFIED
+bhps,"Banjara Hills PS, Hyderabad City Police",2,2,VERIFIED
+bhtrf,"Banjara Hills Traffic, Hyderabad City Police",1,1,VERIFIED
+blnr,Balanagar Zone,4,4,UNVERIFIED
+blpr,"Balapur, Hyderabad City Police",1,1,VERIFIED
+fn,"Falaknuma, Hyderabad City Police",5,5,VERIFIED
+fnps,"Film Nagar PS, Hyderabad City Police",2,2,VERIFIED
+glc,Golconda Zone,2,2,VERIFIED
+jhps,"Jubilee Hills PS, Hyderabad City Police",2,2,VERIFIED
+jhtrf,"Jubilee Hills Traffic, Hyderabad City Police",1,1,VERIFIED
+kcb,"Kanchanbagh, Hyderabad City Police",3,3,VERIFIED
+klp,"Kalapathar, Hyderabad City Police",3,3,VERIFIED
+klr,"Kallur, Khammam Police Commissionerate",4,5,VERIFIED
+kply,Kukatpally Zone,3,4,UNVERIFIED
+mdp,"Madannapet, Hyderabad City Police",3,4,VERIFIED
+mdr,"Madhira, Khammam Police Commissionerate",6,7,VERIFIED
+mgp,"Moghalpura, Hyderabad City Police",3,4,VERIFIED
+mkl,"Mahankali, Hyderabad City Police",4,5,VERIFIED
+mnps,"Madhura Nagar PS, Hyderabad City Police",2,2,VERIFIED
+mrpt,"Meerpet, Hyderabad City Police",2,2,VERIFIED
+mswr,"Maheshwaram, Future City Police Commissionerate",1,1,VERIFIED
+phsf,"Pahadi Shareef, Hyderabad City Police",2,2,VERIFIED
+qbp,Quthbullapur Zone,21,21,VERIFIED
+rgia,"RGIA (Airport), Hyderabad City Police",3,3,VERIFIED
+rgiaop,"RGIA Outpost, Hyderabad City Police",1,1,VERIFIED
+snps,"Sanath Nagar PS, Hyderabad City Police",1,1,VERIFIED
+snr,"Sanath Nagar, Hyderabad City Police",2,2,VERIFIED
+srn,"SR Nagar, Hyderabad City Police",1,1,VERIFIED
+srnps,"SR Nagar PS, Hyderabad City Police",2,2,VERIFIED
+srntrf,"SR Nagar Traffic, Hyderabad City Police",1,1,VERIFIED
+yld,"Yellandu, Bhadradri Kothagudem District",4,5,VERIFIED

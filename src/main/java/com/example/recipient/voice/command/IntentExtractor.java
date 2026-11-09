@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import com.example.recipient.searchRecipient.model.Intent;
+import com.example.recipient.searchRecipient.model.SpokenInput;
 import com.example.recipient.searchRecipient.service.OpenAiIntentParser;
 import com.example.recipient.voice.command.model.CommandIntent;
 import com.example.recipient.voice.command.model.ComposeFormState;
@@ -52,16 +53,31 @@ public class IntentExtractor {
 
     public List<CommandIntent> extractCommands(String transcript, ComposeFormState form,
                                               VoiceCommandContext context) {
+        return extractCommands(transcript, form, context, null);
+    }
+
+    /**
+     * For speech, {@code transcript} is Soniox's English translation and {@code spoken} the original words;
+     * the model reads both so a mistranslated name, rank, place or exclusion does not change the intent.
+     */
+    public List<CommandIntent> extractCommands(String transcript, ComposeFormState form,
+                                              VoiceCommandContext context, SpokenInput spoken) {
+        boolean withSpeech = spoken != null && spoken.addsTo(transcript);
         try {
             ObjectNode input = mapper.createObjectNode();
             input.put("transcript", transcript);
+            if (withSpeech) {
+                input.put("original_speech", spoken.original());
+                input.put("speech_language", spoken.language());
+            }
             input.set("form", mapper.valueToTree(form == null ? ComposeFormState.empty() : form));
             input.set("context", mapper.valueToTree(context == null ? VoiceCommandContext.empty() : context));
 
             ObjectNode request = mapper.createObjectNode();
             request.put("model", model);
             request.set("input", mapper.createArrayNode()
-                    .add(mapper.createObjectNode().put("role", "system").put("content", SYSTEM_PROMPT))
+                    .add(mapper.createObjectNode().put("role", "system")
+                            .put("content", withSpeech ? SYSTEM_PROMPT + SPEECH_RULES : SYSTEM_PROMPT))
                     .add(mapper.createObjectNode().put("role", "user").put("content", mapper.writeValueAsString(input))));
             request.put("store", false);
             // Some models reject temperature, so it is sent only when llm.temperature is set.
@@ -104,6 +120,17 @@ public class IntentExtractor {
         try { return CommandIntent.IntentType.valueOf(value); }
         catch (IllegalArgumentException ex) { return CommandIntent.IntentType.UNKNOWN; }
     }
+
+    /** Language-neutral: names no language and no words, so every language Soniox supports is treated alike. */
+    private static final String SPEECH_RULES = """
+
+            SPOKEN INPUT:
+            When the input has "original_speech", the request was spoken. "transcript" is a machine translation             of it into English made by the speech-to-text service, "original_speech" is the words exactly as spoken             and "speech_language" is the language the service identified. Read both:
+            - Machine translation can garble names, places, ranks, unit names, codes, numbers and negations, and             can blur where a command ends and dictated content begins. When the two disagree, the meaning in             original_speech wins.
+            - search_terms, exclude_terms and labels: write each in English, in Latin letters, the way the             directory spells it. Use the transcript wording when it is right; otherwise write the English or             transliterated form of what original_speech says. Never put non-Latin script in these fields.
+            - Subject and message "text": take it from the English transcript. Change it only to fix a name, number             or place the translation got wrong according to original_speech.
+            - Context history and form values may be in English; compare them by meaning, not by spelling.
+            """;
 
     private static final String SYSTEM_PROMPT = """
             You are a voice-command interpreter for a messaging application. A single transcript may contain several independent compose commands. Extract every clearly requested action in the order it was spoken. Do not perform actions, answer questions, or write content yourself.

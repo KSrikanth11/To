@@ -16,6 +16,7 @@ import org.springframework.web.client.RestClient;
 
 import com.example.recipient.searchRecipient.model.Intent;
 import com.example.recipient.searchRecipient.model.Intent.RecipientType;
+import com.example.recipient.searchRecipient.model.SpokenInput;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -46,12 +47,28 @@ public class OpenAiIntentParser implements IntentParser {
 
     @Override
     public Intent parse(String query) {
+        return parse(query, null);
+    }
+
+    /**
+     * For speech, the model gets Soniox's English transcript and the original words together, so it can
+     * notice when the translation garbled a name, rank, place or exclusion. Search terms stay in English.
+     */
+    @Override
+    public Intent parse(String query, SpokenInput spoken) {
         if (apiKey.isBlank()) return deterministic(query, "missing_api_key");
+        boolean withSpeech = spoken != null && spoken.addsTo(query);
         try {
+            String userContent = withSpeech
+                    ? mapper.createObjectNode().put("english_transcript", query)
+                            .put("original_speech", spoken.original())
+                            .put("speech_language", spoken.language()).toString()
+                    : query;
             JsonNode request = mapper.createObjectNode().put("model", model)
                     .set("input", mapper.createArrayNode()
-                            .add(mapper.createObjectNode().put("role", "system").put("content", SYSTEM_PROMPT))
-                            .add(mapper.createObjectNode().put("role", "user").put("content", query)));
+                            .add(mapper.createObjectNode().put("role", "system")
+                                    .put("content", withSpeech ? SPEECH_SYSTEM_PROMPT : SYSTEM_PROMPT))
+                            .add(mapper.createObjectNode().put("role", "user").put("content", userContent)));
             ((com.fasterxml.jackson.databind.node.ObjectNode) request).put("store", false);
             // Some models reject temperature, so it is sent only when llm.temperature is set.
             if (!temperature.isBlank())
@@ -64,8 +81,9 @@ public class OpenAiIntentParser implements IntentParser {
             List<String> terms = texts(intentNode.path("search_terms"));
             List<String> excluded = texts(intentNode.path("exclude_terms"));
             RecipientType recipientType = parseRecipientType(intentNode.path("recipient_type").asText());
-            log.info("intent.openai.complete search_terms={} exclude_terms={} scope={} recipient_type={}",
-                    terms.size(), excluded.size(), intentNode.path("scope").asText(), recipientType);
+            log.info("intent.openai.complete search_terms={} exclude_terms={} scope={} recipient_type={} with_speech={} speech_language={}",
+                    terms.size(), excluded.size(), intentNode.path("scope").asText(), recipientType,
+                    withSpeech, withSpeech ? spoken.language() : "none");
             return new Intent(query, terms, excluded, "ALL".equals(intentNode.path("scope").asText()), recipientType);
         } catch (Exception ex) {
             log.warn("intent.openai.failed error_type={}", ex.getClass().getSimpleName());
@@ -119,6 +137,19 @@ public class OpenAiIntentParser implements IntentParser {
             "Select all groups in Nalgonda" -> search_terms ["Nalgonda"], recipient_type GROUPS, scope ALL
             "Search si-ahtu-nlg" -> search_terms ["si-ahtu-nlg"]
             """;
+
+    /**
+     * Added when the request was spoken. Deliberately language-neutral: it names no language and no
+     * words, so any language Soniox supports is handled the same way.
+     */
+    public static final String SPEECH_RULES = """
+            Spoken requests arrive as JSON with three fields: "english_transcript" (a machine translation made by             the speech-to-text service), "original_speech" (the words exactly as spoken, in the speaker's language)             and "speech_language" (the language the service identified). Read both texts to decide who the user means:
+            - Machine translation can garble names, places, ranks, unit names, codes and negations. When the two             texts disagree, the meaning in original_speech wins: who is included, who is left out, and whether the             user said all.
+            - Write every search_terms and exclude_terms entry in English, in Latin letters, the way the directory             spells it. Use the english_transcript wording when it is right; otherwise write the English or             transliterated form of what original_speech says. Never put non-Latin script in the output.
+            - For spoken requests these two rules take precedence over "do not translate": translate only as far             as needed to write each term in English; still do not expand abbreviations or add words.
+            """;
+
+    private static final String SPEECH_SYSTEM_PROMPT = SYSTEM_PROMPT + SPEECH_RULES;
 
     private static final String OUTPUT_SCHEMA = """
             {"format":{"type":"json_schema","name":"recipient_intent","strict":true,"schema":{"type":"object","additionalProperties":false,"properties":{"search_terms":{"type":"array","items":{"type":"string"}},"exclude_terms":{"type":"array","items":{"type":"string"}},"recipient_type":{"type":"string","enum":["MEMBERS","GROUPS","BOTH","AUTO"]},"scope":{"type":"string","enum":["ALL","SOME","UNSPECIFIED"]}},"required":["search_terms","exclude_terms","recipient_type","scope"]}}}

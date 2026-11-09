@@ -46,7 +46,7 @@ curl -X POST http://localhost:8080/api/v1/recipients/resolve-audio \
   -F 'limit=50'
 ```
 
-The app validates the upload and asks Soniox to detect the spoken language automatically, then requests one-way translation into English (`en`). `language_hints` remains accepted for request compatibility but is not sent to Soniox on this endpoint: it describes the source speech and can bias recognition, while translation configuration controls the output language. The app uses Soniox's English translation tokens and does not pass non-English source tokens to the recipient resolver. The response includes the English transcript and recipient resolution. Soniox's `en` target is general English rather than a separate Indian-English locale. Transcripts must contain 1–500 characters; upload size defaults to 25 MB.
+The app validates the upload and asks Soniox to detect the spoken language automatically, then requests one-way translation into English (`en`). `language_hints` remains accepted for request compatibility but is not sent to Soniox on this endpoint: it describes the source speech and can bias recognition, while translation configuration controls the output language. The app uses Soniox's English translation tokens and does not pass non-English source tokens to the recipient resolver. The app also keeps the original spoken words (the non-translation tokens) and the language Soniox identified. The intent LLM receives both the English transcript and the original speech, so it can catch a name, place, rank or exclusion that the translation got wrong; search terms are still written in English. The response includes the English transcript (`transcript`), the spoken words (`original_transcript`), the identified language (`detected_language`) and recipient resolution. Soniox's `en` target is general English rather than a separate Indian-English locale. Transcripts must contain 1–500 characters; upload size defaults to 25 MB.
 
 ## Voice command architecture
 
@@ -72,7 +72,7 @@ curl -X POST http://localhost:8080/api/voice/command \
 
 The request flows through these layers:
 
-1. `VoiceCommandController` accepts JSON transcript input or multipart audio. Audio is transcribed and translated to English by `SonioxTranscriptionService`; either path then uses the same transcript routing method.
+1. `VoiceCommandController` accepts JSON transcript input or multipart audio. Audio is transcribed and translated to English by `SonioxTranscriptionService`, which also returns the original spoken words and the identified language; either path then uses the same transcript routing method. For audio, `IntentExtractor` receives the original speech next to the English transcript, and the response adds `originalTranscript` and `detectedLanguage`.
 2. `IntentExtractor` receives the current transcript, compose form, and recent user queries. It uses prior queries only to interpret the current turn and returns an ordered list of current intents, each with its own confidence; prior actions are not replayed. This supports follow-ups such as changing the designation in an earlier recipient query while retaining its location, as well as references to earlier subject, message, or label instructions.
 3. `CommandRouter` applies supported updates in order and returns the resulting `form`. Recipient searches run through `SearchRecipientsAction` and `RecipientResolverService`; their full `ResolveRecipientResponse` is returned as `recipientResolution` alongside the UI actions.
 4. Angular applies the actions and uses the returned form as the new compose state. Recipient searches can return three actions:
@@ -85,7 +85,7 @@ The request flows through these layers:
 
 For example, a transcript such as “send a message to all SIs in Nalgonda with subject Monthly review and label urgent” can return recipient results, a subject update, a label action, and a send confirmation request in one response. The message body remains unchanged because none was dictated.
 
-Implementation map: `voice/command/VoiceCommandController.java` (HTTP and audio/text convergence), `AudioService/SonioxTranscriptionService.java` (audio-to-English transcript), `voice/command/model/ComposeFormState.java`, `VoiceCommandContext.java`, and `VoiceCommandRequest.java` (request state and bounded query history), `voice/command/CommandRouter.java` (dispatch and history update), `voice/command/IntentExtractor.java` (context-aware intent extraction), and `voice/actions/**` (action output).
+Implementation map: `voice/command/VoiceCommandController.java` (HTTP and audio/text convergence), `AudioService/SonioxTranscriptionService.java` (audio to English transcript plus original speech and language), `voice/command/model/ComposeFormState.java`, `VoiceCommandContext.java`, and `VoiceCommandRequest.java` (request state and bounded query history), `voice/command/CommandRouter.java` (dispatch and history update), `voice/command/IntentExtractor.java` (context-aware intent extraction), and `voice/actions/**` (action output).
 
 ## Matching and scores
 
@@ -112,7 +112,7 @@ Catalog SQL in `docs/sql/` (MySQL 8.0.19+). Every table has `list_id`, so each t
 1. `recipient_catalog.sql`: creates the catalog tables (`recipient_designation` with `parent_code`, `recipient_location`, `recipient_unit`, their `*_alias` tables, `recipient_query_word`), the decoded-member tables (`recipient_member_profile`, `recipient_member_attribute`) and the `recipient_catalog_phrase` view. It seeds the base vocabulary for `@list_id` (default 173): core designations, unit spellings and query words. It adds no locations; those come from step 2. Generated by `scripts/catalog/generate_base.py` from `scripts/catalog/schema.sql`.
 2. `recipient_decoded_import.sql`: loads the decoded-usernames workbook (`TG_Police_Usernames_Decoded.xlsx`) into the same list:
    - every rank and post (PC, HC, ASI, WSI, WPC… with `parent_code`, so a WSI also counts as an SI);
-   - every location: the districts, commissionerates, zones and stations, with their codes from the abbreviation key. The old JSON alias dictionary is not loaded, because the decoded data contradicts it (MLG = Mulugu District, not Miryalaguda; KMR = Kamareddy, not Karimnagar);
+   - every location: the districts, commissionerates, zones and stations, with their codes from the abbreviation key and the location codes the usernames themselves use (`qbp` = Quthbullapur Zone, `mdr` = Madhira, `jhps` = Jubilee Hills PS). A username code becomes an alias only when its letters abbreviate the place name in order and at least 75% of the accounts carrying it are decoded to that place. The old JSON alias dictionary is not loaded, because the decoded data contradicts it (MLG = Mulugu District, not Miryalaguda; KMR = Kamareddy, not Karimnagar);
    - one profile per username, with its designation and location attributes.
 
    Values the decoder marked `?`, and Likely/Needs-review rows, are stored as unverified, so they only give SUGGESTED matches. "Not decoded" values are left out, and Test/system accounts are never matched by rank or place. Regenerate it after the workbook changes:
@@ -129,6 +129,7 @@ Catalog SQL in `docs/sql/` (MySQL 8.0.19+). Every table has `list_id`, so each t
    - `designations_not_mapped.csv`: offices and cells. These are searched by keyword, not by rank.
    - `values_kept_as_keywords.csv`: non-place values such as Stores or Training.
    - `json_dictionary_conflicts.csv`: codes the decoded data reads differently from the old JSON dictionary.
+   - `username_location_codes.csv`: location codes learned from usernames, with how many accounts support each.
 3. Optional: `recipient_catalog_discovery.sql` gives read-only coverage reports over `list_members` / `list_sub_groups`, and `recipient_catalog_copy_list.sql` copies one list's catalog (not its profiles) to a new list.
 
 In MySQL mode the application reads these tables (`recipient_catalog_phrase`, `recipient_query_word`, `recipient_member_profile`, `recipient_member_attribute`, filtered by `list_id`). A profile is used only while `list_members.list_username` still equals the profile's `username`. After a rename, the member is read from the new username until it is decoded again. Member and profile edits apply to the next search; after editing the catalog tables, call `POST /api/v1/recipients/index/reload` or wait for the cache TTL.

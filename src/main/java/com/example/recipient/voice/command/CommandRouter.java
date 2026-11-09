@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.example.recipient.searchRecipient.model.ResolveRecipientResponse;
+import com.example.recipient.searchRecipient.model.SpokenInput;
 import com.example.recipient.voice.actions.searchRecipient.SearchRecipientsAction;
 import com.example.recipient.voice.actions.setmessage.SetMessageAction;
 import com.example.recipient.voice.actions.setsubject.SetSubjectAction;
@@ -37,9 +38,17 @@ public class CommandRouter {
 
     public VoiceCommandResponse route(String transcript, ComposeFormState currentForm,
                                       VoiceCommandContext currentContext) {
+        return route(transcript, currentForm, currentContext, null);
+    }
+
+    /** Routes a spoken command: {@code transcript} is the English translation, {@code spoken} the original words. */
+    public VoiceCommandResponse route(String transcript, ComposeFormState currentForm,
+                                      VoiceCommandContext currentContext, SpokenInput spoken) {
         ComposeFormState form = currentForm == null ? ComposeFormState.empty() : currentForm;
         VoiceCommandContext context = currentContext == null ? VoiceCommandContext.empty() : currentContext;
-        List<CommandIntent> commands = extractor.extractCommands(transcript, form, context);
+        List<CommandIntent> commands = spoken == null
+                ? extractor.extractCommands(transcript, form, context)
+                : extractor.extractCommands(transcript, form, context, spoken);
         // Keep compatibility with older extractor implementations and simple test doubles.
         if (commands == null || commands.isEmpty()) {
             CommandIntent legacy = extractor.extract(transcript, form);
@@ -64,6 +73,8 @@ public class CommandRouter {
                         actions.add(UiAction.clarifyRecipients("Recipients could not be searched. Please try again."));
                         break;
                     }
+
+                    System.out.println("Recipient resolution: " + recipientResolution);
                     SearchRecipientsAction.Selection selection = searchRecipients.select(recipientResolution);
                     if (!selection.selected().isEmpty()) actions.add(UiAction.setRecipients(selection.selected()));
                     if (!selection.suggested().isEmpty()) actions.add(UiAction.suggestRecipients(selection.suggested()));
